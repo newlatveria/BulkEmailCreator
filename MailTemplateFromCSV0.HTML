@@ -102,7 +102,6 @@
             const linksContainerEl = document.getElementById('emailLinksContainer');
 
             let csvDataHeaders = [];
-            let generatedMailtoLinks = [];
 
             const showStatus = (message, isError = false) => {
                 statusMessageEl.textContent = message;
@@ -200,7 +199,6 @@
                 
                 showStatus('Generating email drafts...', false);
                 linksContainerEl.innerHTML = '';
-                generatedMailtoLinks = [];
 
                 const reader = new FileReader();
                 reader.onload = (e) => {
@@ -257,7 +255,6 @@
 
                 if (generatedCount > 0) {
                     showStatus(`Successfully generated ${generatedCount} email draft links. Click a link to open it in Outlook, or click the copy button to copy the link.`, false);
-                    addControlButtons();
                 } else {
                     showStatus('No valid rows found to generate emails.', true);
                 }
@@ -274,8 +271,6 @@
                 if (bcc) {
                     mailtoHref += `&bcc=${encodeURIComponent(bcc)}`;
                 }
-
-                generatedMailtoLinks.push(mailtoHref);
 
                 const blockContainerEl = document.createElement('div');
                 blockContainerEl.className = "space-y-2";
@@ -294,6 +289,21 @@
                 if (attachments) linkContent += `<br><span class="font-bold text-rose-300">Attachments (Manual):</span> ${attachments}`;
 
                 linkEl.innerHTML = linkContent;
+
+                linkEl.addEventListener('click', (e) => {
+                    // Update styling to show it has been clicked
+                    linkEl.classList.remove('bg-gray-700', 'hover:bg-gray-600', 'text-gray-200');
+                    linkEl.classList.add('bg-green-800', 'text-green-200');
+
+                    // Add a checkmark icon to the link
+                    const checkmarkIcon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+                    checkmarkIcon.setAttribute("class", "inline-block h-4 w-4 ml-2 text-green-200");
+                    checkmarkIcon.setAttribute("fill", "currentColor");
+                    checkmarkIcon.setAttribute("viewBox", "0 0 20 20");
+                    checkmarkIcon.innerHTML = `<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />`;
+                    linkEl.appendChild(checkmarkIcon);
+                });
+
 
                 const copyButton = document.createElement('button');
                 copyButton.className = "shrink-0 p-3 bg-gray-700 hover:bg-gray-600 transition-colors duration-200 rounded-lg text-sm shadow-sm";
@@ -346,38 +356,6 @@
                 } finally {
                     document.body.removeChild(tempTextarea);
                 }
-            };
-
-            const addControlButtons = () => {
-                const existingBtnContainer = document.getElementById('controlButtons');
-                if (existingBtnContainer) {
-                    existingBtnContainer.remove();
-                }
-
-                const buttonContainer = document.createElement('div');
-                buttonContainer.id = 'controlButtons';
-                buttonContainer.className = "flex gap-4 mt-4";
-                
-                const copyAllBtn = document.createElement('button');
-                copyAllBtn.className = "w-full py-3 px-6 bg-gray-700 text-white font-bold rounded-lg shadow-md hover:bg-gray-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 focus:ring-offset-gray-800";
-                copyAllBtn.textContent = 'Copy All Links';
-                copyAllBtn.onclick = () => {
-                    const allLinks = generatedMailtoLinks.join('\n');
-                    copyToClipboard(allLinks);
-                    showStatus('Copied all links to clipboard!', false);
-                };
-
-                const sendAllBtn = document.createElement('button');
-                sendAllBtn.className = "w-full py-3 px-6 bg-gray-700 text-white font-bold rounded-lg shadow-md hover:bg-gray-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 focus:ring-offset-gray-800";
-                sendAllBtn.textContent = 'Send All Drafts';
-                sendAllBtn.onclick = () => {
-                    generatedMailtoLinks.forEach(link => window.open(link, '_blank'));
-                    showStatus('Opening all drafts in new tabs...', false);
-                };
-                
-                buttonContainer.appendChild(copyAllBtn);
-                buttonContainer.appendChild(sendAllBtn);
-                linksContainerEl.prepend(buttonContainer);
             };
         });
     </script>
