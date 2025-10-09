@@ -177,7 +177,7 @@ Found a bug? Have a feature idea? Contributions are welcome!
 
 ## 📝 License
 
-MIT License - Feel free to use, modify, and distribute!
+Apache License Version 2.0 - Feel free to use, modify, and distribute!
 
 ## 🙏 Acknowledgments
 
@@ -198,3 +198,4 @@ Need help? Have questions?
 **Happy Emailing! 🚀**
 
 Made with ☕ and determination to make email management easier.
+
