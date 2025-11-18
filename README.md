@@ -9,6 +9,7 @@
 ## ✨ What Makes This Special?
 
 **Bulk Email Creator** is a powerful, client-side web application that generates personalized email drafts from CSV files. Perfect for sending newsletters, invoices, event invitations, or any mass communication where each recipient needs a personalized touch.
+Stop wrestling with mail merge limits and complicated software! Bulk Email Creator is a lightning-fast, privacy-first tool built as a single HTML file (bulkemailer.html) that allows you to instantly generate hundreds of personalized Outlook draft emails from any standard CSV file.
 
 ### 🎯 Key Features
 
@@ -21,6 +22,15 @@
 - 🎯 **One-Click Generation** - Create mailto links that open directly in Outlook or your default email client
 - 📋 **Easy Copying** - Copy mailto links with a single click for batch processing
 
+🏗️ Use Cases
+Financial Reporting: Send individual account statements or payment reminders, personalized with unique {{Balance}} and {{DueDate}} variables.
+
+Internal HR/IT Updates: Distribute personalized password reset links, onboarding instructions, or quarterly review schedules.
+
+Customer Onboarding: Create personalized welcome emails pre-filled with the customer's new {{Username}} and {{SupportContact}}.
+
+Sales Follow-Up: Generate a batch of drafts for a sales team, each uniquely customized for a prospect based on their {{Company}} or {{ProductInterest}}.
+
 ## 🚀 Quick Start
 
 ### Installation
@@ -31,18 +41,25 @@
 
 ### Basic Usage
 
-1. **Prepare Your CSV**
+**🛠️ How to Prepare Your CSV file**
+For the best results, ensure your CSV file is prepared as follows:
+
+1. Header Row is Required: The first row of your CSV must contain unique, descriptive column names (e.g., Name, Email, InvoiceID).
+
+2. No Commas in Fields: The tool uses a basic comma-splitting parser. For robust operation, avoid including commas (,) within any data field. If a field must contain a comma, save your data as a Tab-Separated Value (TSV) file and manually replace all commas with tabs in the final file before processing.
+
+3. Recipient Column: Ensure the column you select for the recipient contains valid email addresses.
    ```csv
    Email,Name,Company,Amount
    john@example.com,John Smith,Acme Corp,$1,500
    jane@example.com,Jane Doe,Tech Inc,$2,300
    ```
 
-2. **Upload Your File**
+3. **Upload Your File**
    - Click "Upload your CSV file" and select your file
    - Headers are automatically detected
 
-3. **Create Your Template**
+4. **Create Your Template**
    - Select the recipient email column
    - Write your subject: `Invoice for {{Company}}`
    - Write your body:
@@ -55,7 +72,7 @@
      The Team
      ```
 
-4. **Generate!**
+5. **Generate!**
    - Click "Generate Email Drafts"
    - Click any email to open it in your email client
    - Or copy the mailto link for later use
@@ -198,4 +215,5 @@ Need help? Have questions?
 **Happy Emailing! 🚀**
 
 Made with ☕ and determination to make email management easier.
+
 
