@@ -20,7 +20,6 @@
             <p class="text-sm text-gray-400 mb-6 text-center">Generate multiple Outlook draft emails from a CSV file.</p>
             
             <div class="space-y-6">
-                <!-- CSV File Upload -->
                 <div>
                     <label for="csvFile" class="block text-sm font-medium text-gray-300 mb-2">1. Upload your CSV file</label>
                     <input type="file" id="csvFile" accept=".csv" class="w-full text-sm text-gray-400
@@ -31,15 +30,12 @@
                         hover:file:bg-teal-600 transition-colors duration-200 cursor-pointer">
                 </div>
 
-                <!-- CSV Headers Section -->
                 <div id="headers-section" class="hidden">
                     <label class="block text-sm font-medium text-gray-300 mb-2">2. Available Headers (Click to copy)</label>
                     <div id="headerTags" class="flex flex-wrap gap-2 mb-4 p-3 bg-gray-700 rounded-lg">
-                        <!-- Headers will be populated here -->
-                    </div>
+                        </div>
                 </div>
 
-                <!-- Recipient, Subject, and Body Inputs -->
                 <div>
                     <label for="recipientColumn" class="block text-sm font-medium text-gray-300 mb-2">3. Select Recipient Column</label>
                     <select id="recipientColumn" class="w-full p-2.5 rounded-lg bg-gray-700 text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500"></select>
@@ -55,7 +51,6 @@
                     <textarea id="bodyTemplate" rows="8" placeholder="e.g., Dear {{Name}},&#10;&#10;Your account number {{AccountNumber}} is now ready.&#10;&#10;Best regards,&#10;The Team" class="w-full p-2.5 rounded-lg bg-gray-700 text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500"></textarea>
                 </div>
 
-                <!-- Optional Reference Columns -->
                 <div class="grid md:grid-cols-3 gap-4">
                     <div>
                         <label for="ccColumn" class="block text-sm font-medium text-gray-300 mb-2">6. CC Column (Optional)</label>
@@ -77,18 +72,23 @@
                     </div>
                 </div>
 
-                <!-- Generate Button -->
+                <div class="flex items-center space-x-3 p-3 bg-gray-700 rounded-lg">
+                    <input type="checkbox" id="mergeEmails" class="h-4 w-4 rounded border-gray-600 bg-gray-800 text-teal-500 focus:ring-2 focus:ring-teal-500">
+                    <label for="mergeEmails" class="text-sm text-gray-300">
+                        <span class="font-semibold">Merge multiple rows per recipient</span>
+                        <span class="block text-xs text-gray-400 mt-1">Combine emails to the same recipient into one email with numbered sections</span>
+                    </label>
+                </div>
+
                 <button id="generateBtn" class="w-full py-3 px-6 bg-blue-600 text-white font-bold rounded-lg shadow-md hover:bg-blue-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-gray-800">
                     Generate Email Drafts
                 </button>
             </div>
 
-            <!-- Status and Output Area -->
             <div id="statusMessage" class="mt-6 text-center text-sm font-semibold transition-opacity duration-300 opacity-0"></div>
             
             <div id="emailLinksContainer" class="mt-8 space-y-3 pr-2">
-                <!-- Generated email links will be appended here -->
-            </div>
+                </div>
         </div>
     </div>
 
@@ -103,6 +103,7 @@
             const ccColEl = document.getElementById('ccColumn');
             const bccColEl = document.getElementById('bccColumn');
             const attachmentsColEl = document.getElementById('attachmentsColumn');
+            const mergeEmailsEl = document.getElementById('mergeEmails');
             const generateBtn = document.getElementById('generateBtn');
             const statusMessageEl = document.getElementById('statusMessage');
             const linksContainerEl = document.getElementById('emailLinksContainer');
@@ -130,12 +131,16 @@
             });
 
             const processHeaders = (text) => {
+                // Corrected to handle the standard Excel CSV behavior of using quotes for fields with commas/newlines
+                // However, without a dedicated CSV parser, we'll stick to a basic split and assume clean CSV for simplicity,
+                // but we should advise the user that the CSV should not contain commas within fields if this basic parser is used.
                 const rows = text.split(/\r?\n/).filter(row => row.trim() !== '');
                 if (rows.length === 0) {
                     showStatus('The CSV file is empty.', true);
                     return;
                 }
                 
+                // Simple split. For robust app, use PapaParse or similar.
                 csvDataHeaders = rows[0].split(',').map(h => h.trim());
                 if (csvDataHeaders.length === 0 || !csvDataHeaders[0]) {
                     showStatus('Could not find headers in the CSV. Please ensure the first row is a header.', true);
@@ -220,6 +225,7 @@
                 const ccCol = ccColEl.value;
                 const bccCol = bccColEl.value;
                 const attachmentsCol = attachmentsColEl.value;
+                const shouldMerge = mergeEmailsEl.checked;
 
                 if (!file) {
                     showStatus('Please upload a CSV file first.', true);
@@ -236,12 +242,12 @@
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     const text = e.target.result;
-                    processAndGenerateEmails(text, recipientCol, subjectTemplate, bodyTemplate, ccCol, bccCol, attachmentsCol);
+                    processAndGenerateEmails(text, recipientCol, subjectTemplate, bodyTemplate, ccCol, bccCol, attachmentsCol, shouldMerge);
                 };
                 reader.readAsText(file);
             });
 
-            const processAndGenerateEmails = (text, recipientCol, subjectTemplate, bodyTemplate, ccCol, bccCol, attachmentsCol) => {
+            const processAndGenerateEmails = (text, recipientCol, subjectTemplate, bodyTemplate, ccCol, bccCol, attachmentsCol, shouldMerge) => {
                 const rows = text.split(/\r?\n/).filter(row => row.trim() !== '');
                 if (rows.length <= 1) {
                     showStatus('The CSV file contains no data rows.', true);
@@ -259,40 +265,105 @@
                     return;
                 }
 
-                let generatedCount = 0;
-                for (let i = 1; i < rows.length; i++) {
-                    const rowData = rows[i].split(',');
-                    const recipient = rowData[recipientIndex];
+                if (shouldMerge) {
+                    // Group rows by recipient
+                    const recipientGroups = {};
+                    for (let i = 1; i < rows.length; i++) {
+                        const rowData = rows[i].split(',');
+                        const recipient = rowData[recipientIndex];
+                        
+                        if (recipient) {
+                            if (!recipientGroups[recipient]) {
+                                recipientGroups[recipient] = [];
+                            }
+                            recipientGroups[recipient].push(rowData);
+                        }
+                    }
 
-                    if (recipient) {
-                        let finalSubject = subjectTemplate;
-                        let finalBody = bodyTemplate;
-                        let ccEmail = ccIndex !== -1 ? (rowData[ccIndex] || '') : '';
-                        let bccEmail = bccIndex !== -1 ? (rowData[bccIndex] || '') : '';
-                        let attachments = attachmentsIndex !== -1 ? (rowData[attachmentsIndex] || '') : '';
+                    let generatedCount = 0;
+                    for (const recipient in recipientGroups) {
+                        const rowsForRecipient = recipientGroups[recipient];
+                        let mergedBody = '';
+                        let allCCs = new Set();
+                        let allBCCs = new Set();
+                        let allAttachments = new Set();
+                        let firstSubject = '';
+                        // allVariables will hold the variables of the first row for display in the variables container
+                        let firstRowVariables = {}; 
 
-                        const variables = {};
-                        headers.forEach((header, index) => {
-                            const placeholder = `{{${header}}}`;
-                            const value = rowData[index] || '';
-                            finalSubject = finalSubject.split(placeholder).join(value);
-                            finalBody = finalBody.split(placeholder).join(value);
-                            variables[header] = value;
+                        rowsForRecipient.forEach((rowData, idx) => {
+                            let finalSubject = subjectTemplate;
+                            let finalBody = bodyTemplate;
+                            
+                            const variables = {};
+                            headers.forEach((header, index) => {
+                                const placeholder = `{{${header}}}`;
+                                const value = rowData[index] || '';
+                                finalSubject = finalSubject.split(placeholder).join(value);
+                                finalBody = finalBody.split(placeholder).join(value);
+                                variables[header] = value;
+                            });
+
+                            if (idx === 0) {
+                                firstSubject = finalSubject;
+                                firstRowVariables = variables; // Save for display
+                            }
+
+                            mergedBody += `--- Entry ${idx + 1} ---\n${finalBody}\n\n`;
+                            
+                            if (ccIndex !== -1 && rowData[ccIndex]) allCCs.add(rowData[ccIndex]);
+                            if (bccIndex !== -1 && rowData[bccIndex]) allBCCs.add(rowData[bccIndex]);
+                            if (attachmentsIndex !== -1 && rowData[attachmentsIndex]) allAttachments.add(rowData[attachmentsIndex]);
                         });
 
-                        createEmailOutputBlock(recipient, finalSubject, finalBody, ccEmail, bccEmail, attachments, variables);
+                        const ccEmails = Array.from(allCCs).join(', ');
+                        const bccEmails = Array.from(allBCCs).join(', ');
+                        const attachments = Array.from(allAttachments).join(', ');
+                        
+                        createEmailOutputBlock(recipient, firstSubject, mergedBody, ccEmails, bccEmails, attachments, firstRowVariables, true, rowsForRecipient.length);
                         generatedCount++;
                     }
-                }
 
-                if (generatedCount > 0) {
-                    showStatus(`Successfully generated ${generatedCount} email draft links. Click a link to open it in Outlook, or click the copy button to copy the link.`, false);
+                    showStatus(`Successfully merged and generated ${generatedCount} email draft links (${rows.length - 1} rows combined). Click a link to open it in Outlook, or click the copy button to copy the link.`, false);
                 } else {
-                    showStatus('No valid rows found to generate emails.', true);
+                    // Original behavior - one email per row
+                    let generatedCount = 0;
+                    for (let i = 1; i < rows.length; i++) {
+                        const rowData = rows[i].split(',');
+                        const recipient = rowData[recipientIndex];
+
+                        if (recipient) {
+                            let finalSubject = subjectTemplate;
+                            let finalBody = bodyTemplate;
+                            let ccEmail = ccIndex !== -1 ? (rowData[ccIndex] || '') : '';
+                            let bccEmail = bccIndex !== -1 ? (rowData[bccIndex] || '') : '';
+                            let attachments = attachmentsIndex !== -1 ? (rowData[attachmentsIndex] || '') : '';
+
+                            const variables = {}; // Variables specific to this row
+                            headers.forEach((header, index) => {
+                                const placeholder = `{{${header}}}`;
+                                const value = rowData[index] || '';
+                                finalSubject = finalSubject.split(placeholder).join(value);
+                                finalBody = finalBody.split(placeholder).join(value);
+                                variables[header] = value; // Store variables for this row
+                            });
+                            
+                            // *** FIX: Call the output block function ***
+                            createEmailOutputBlock(recipient, finalSubject, finalBody, ccEmail, bccEmail, attachments, variables, false, 1);
+                            generatedCount++;
+                        }
+                    }
+
+                    if (generatedCount > 0) {
+                        showStatus(`Successfully generated ${generatedCount} email draft links. Click a link to open it in Outlook, or click the copy button to copy the link.`, false);
+                    } else {
+                        showStatus('No valid rows found to generate emails.', true);
+                    }
                 }
             };
-
-            const createEmailOutputBlock = (recipient, subject, body, cc, bcc, attachments, variables) => {
+            
+            // *** FIX: Consolidated function to create both single and merged email output blocks ***
+            const createEmailOutputBlock = (recipient, subject, body, cc, bcc, attachments, variables, isMerged = false, rowCount = 1) => {
                 const encodedSubject = encodeURIComponent(subject || '');
                 const encodedBody = encodeURIComponent(body || '');
                 let mailtoHref = `mailto:${recipient}?subject=${encodedSubject}&body=${encodedBody}`;
@@ -315,6 +386,9 @@
                 linkEl.className = "flex-grow block bg-gray-700 hover:bg-gray-600 transition-colors duration-200 p-3 rounded-lg text-sm text-left shadow-sm";
                 
                 let linkContent = `<span class="font-bold text-teal-300">To:</span> ${recipient}`;
+                if (isMerged) {
+                    linkContent += `<br><span class="font-bold text-amber-300">Merged Entries:</span> ${rowCount}`;
+                }
                 if (cc) linkContent += `<br><span class="font-bold text-sky-300">CC:</span> ${cc}`;
                 if (bcc) linkContent += `<br><span class="font-bold text-purple-300">BCC:</span> ${bcc}`;
                 linkContent += `<br><span class="font-bold text-sky-300">Subject:</span> ${subject || 'No Subject'}`;
@@ -323,15 +397,19 @@
                 linkEl.innerHTML = linkContent;
 
                 linkEl.addEventListener('click', (e) => {
-                    linkEl.classList.remove('bg-gray-700', 'hover:bg-gray-600', 'text-gray-200');
-                    linkEl.classList.add('bg-green-800', 'text-green-200');
+                    // Only change color/add checkmark if it's the first time being clicked
+                    if (!linkEl.dataset.clicked) {
+                        linkEl.classList.remove('bg-gray-700', 'hover:bg-gray-600', 'text-gray-200');
+                        linkEl.classList.add('bg-green-800', 'text-green-200');
 
-                    const checkmarkIcon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-                    checkmarkIcon.setAttribute("class", "inline-block h-4 w-4 ml-2 text-green-200");
-                    checkmarkIcon.setAttribute("fill", "currentColor");
-                    checkmarkIcon.setAttribute("viewBox", "0 0 20 20");
-                    checkmarkIcon.innerHTML = `<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />`;
-                    linkEl.appendChild(checkmarkIcon);
+                        const checkmarkIcon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+                        checkmarkIcon.setAttribute("class", "inline-block h-4 w-4 ml-2 text-green-200");
+                        checkmarkIcon.setAttribute("fill", "currentColor");
+                        checkmarkIcon.setAttribute("viewBox", "0 0 20 20");
+                        checkmarkIcon.innerHTML = `<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />`;
+                        linkEl.appendChild(checkmarkIcon);
+                        linkEl.dataset.clicked = 'true';
+                    }
                 });
 
                 const copyButton = document.createElement('button');
@@ -353,8 +431,11 @@
                 const variablesContainer = document.createElement('div');
                 variablesContainer.className = "hidden pl-4 pr-2 pb-2 text-xs text-gray-400 overflow-x-auto";
                 let varsHtml = '<p class="font-bold text-gray-300 mb-1">Variables used:</p>';
+                // *** FIX: Use the 'variables' object passed in (which is the single row's or the first row's in a merge) ***
                 for (const key in variables) {
-                    varsHtml += `<p><span class="font-semibold text-gray-300">${key}:</span> ${variables[key]}</p>`;
+                    if (variables.hasOwnProperty(key)) {
+                        varsHtml += `<p><span class="font-semibold text-gray-300">${key}:</span> ${variables[key]}</p>`;
+                    }
                 }
                 variablesContainer.innerHTML = varsHtml;
 
@@ -372,6 +453,10 @@
 
                 linksContainerEl.appendChild(blockContainerEl);
             };
+
+            // Remove the duplicate function from the original code that only handled merged emails
+            // const createMergedEmailOutputBlock = (recipient, subject, body, cc, bcc, attachments, allVariables) => { ... }
+
 
             const copyToClipboard = (text) => {
                 const tempTextarea = document.createElement('textarea');
