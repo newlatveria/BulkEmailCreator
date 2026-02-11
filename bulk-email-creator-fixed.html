@@ -5,10 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bulk Email Creator</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
         body {
             font-family: 'Inter', sans-serif;
+        }
+        .rotate-180 {
+            transform: rotate(180deg);
+        }
+        .transition-transform {
+            transition: transform 0.2s ease-in-out;
         }
     </style>
 </head>
@@ -33,7 +40,7 @@
                 <div id="headers-section" class="hidden">
                     <label class="block text-sm font-medium text-gray-300 mb-2">2. Available Headers (Click to copy)</label>
                     <div id="headerTags" class="flex flex-wrap gap-2 mb-4 p-3 bg-gray-700 rounded-lg">
-                        </div>
+                    </div>
                 </div>
 
                 <div>
@@ -88,7 +95,7 @@
             <div id="statusMessage" class="mt-6 text-center text-sm font-semibold transition-opacity duration-300 opacity-0"></div>
             
             <div id="emailLinksContainer" class="mt-8 space-y-3 pr-2">
-                </div>
+            </div>
         </div>
     </div>
 
@@ -108,6 +115,7 @@
             const statusMessageEl = document.getElementById('statusMessage');
             const linksContainerEl = document.getElementById('emailLinksContainer');
 
+            let csvData = null;
             let csvDataHeaders = [];
 
             const showStatus = (message, isError = false) => {
@@ -122,36 +130,41 @@
                 }
                 
                 showStatus('Reading file...', false);
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const text = e.target.result;
-                    processHeaders(text);
-                };
-                reader.readAsText(file);
-            });
-
-            const processHeaders = (text) => {
-                // Corrected to handle the standard Excel CSV behavior of using quotes for fields with commas/newlines
-                // However, without a dedicated CSV parser, we'll stick to a basic split and assume clean CSV for simplicity,
-                // but we should advise the user that the CSV should not contain commas within fields if this basic parser is used.
-                const rows = text.split(/\r?\n/).filter(row => row.trim() !== '');
-                if (rows.length === 0) {
-                    showStatus('The CSV file is empty.', true);
-                    return;
-                }
                 
-                // Simple split. For robust app, use PapaParse or similar.
-                csvDataHeaders = rows[0].split(',').map(h => h.trim());
-                if (csvDataHeaders.length === 0 || !csvDataHeaders[0]) {
-                    showStatus('Could not find headers in the CSV. Please ensure the first row is a header.', true);
-                    return;
-                }
+                // Use PapaParse for robust CSV parsing
+                Papa.parse(file, {
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: function(results) {
+                        if (results.errors.length > 0) {
+                            console.error('CSV parsing errors:', results.errors);
+                            showStatus('Warning: Some rows had parsing errors. Check console for details.', true);
+                        }
+                        
+                        if (results.data.length === 0) {
+                            showStatus('The CSV file contains no data rows.', true);
+                            return;
+                        }
+                        
+                        csvData = results.data;
+                        csvDataHeaders = results.meta.fields;
+                        
+                        if (!csvDataHeaders || csvDataHeaders.length === 0) {
+                            showStatus('Could not find headers in the CSV. Please ensure the first row contains column names.', true);
+                            return;
+                        }
 
-                populateHeaderTags(csvDataHeaders);
-                populateDropdowns(csvDataHeaders);
-                headersSectionEl.classList.remove('hidden');
-                showStatus(`Found ${csvDataHeaders.length} headers. You can now create your template.`, false);
-            };
+                        populateHeaderTags(csvDataHeaders);
+                        populateDropdowns(csvDataHeaders);
+                        headersSectionEl.classList.remove('hidden');
+                        showStatus(`Found ${csvDataHeaders.length} headers and ${csvData.length} data rows. You can now create your template.`, false);
+                    },
+                    error: function(error) {
+                        console.error('CSV parsing error:', error);
+                        showStatus('Failed to parse CSV file. Please ensure it is a valid CSV format.', true);
+                    }
+                });
+            });
 
             const populateHeaderTags = (headers) => {
                 headerTagsEl.innerHTML = '';
@@ -161,19 +174,12 @@
                     tag.className = 'cursor-pointer bg-teal-600 hover:bg-teal-500 transition-colors duration-200 text-white text-xs font-semibold px-3 py-1 rounded-full';
                     tag.onclick = () => {
                         const placeholder = `{{${header}}}`;
-                        const tempTextarea = document.createElement('textarea');
-                        tempTextarea.value = placeholder;
-                        document.body.appendChild(tempTextarea);
-                        tempTextarea.select();
-                        try {
-                            document.execCommand('copy');
+                        navigator.clipboard.writeText(placeholder).then(() => {
                             showStatus(`Copied '${placeholder}' to clipboard.`, false);
-                        } catch (err) {
+                        }).catch(err => {
                             console.error('Failed to copy text: ', err);
                             showStatus('Failed to copy placeholder. Please copy manually.', true);
-                        } finally {
-                            document.body.removeChild(tempTextarea);
-                        }
+                        });
                     };
                     headerTagsEl.appendChild(tag);
                 });
@@ -218,7 +224,6 @@
             };
             
             generateBtn.addEventListener('click', () => {
-                const file = csvFileEl.files[0];
                 const recipientCol = recipientColEl.value;
                 const subjectTemplate = subjectTemplateEl.value;
                 const bodyTemplate = bodyTemplateEl.value;
@@ -227,7 +232,7 @@
                 const attachmentsCol = attachmentsColEl.value;
                 const shouldMerge = mergeEmailsEl.checked;
 
-                if (!file) {
+                if (!csvData) {
                     showStatus('Please upload a CSV file first.', true);
                     return;
                 }
@@ -239,46 +244,23 @@
                 showStatus('Generating email drafts...', false);
                 linksContainerEl.innerHTML = '';
 
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const text = e.target.result;
-                    processAndGenerateEmails(text, recipientCol, subjectTemplate, bodyTemplate, ccCol, bccCol, attachmentsCol, shouldMerge);
-                };
-                reader.readAsText(file);
+                processAndGenerateEmails(csvData, recipientCol, subjectTemplate, bodyTemplate, ccCol, bccCol, attachmentsCol, shouldMerge);
             });
 
-            const processAndGenerateEmails = (text, recipientCol, subjectTemplate, bodyTemplate, ccCol, bccCol, attachmentsCol, shouldMerge) => {
-                const rows = text.split(/\r?\n/).filter(row => row.trim() !== '');
-                if (rows.length <= 1) {
-                    showStatus('The CSV file contains no data rows.', true);
-                    return;
-                }
-                
-                const headers = rows[0].split(',').map(h => h.trim());
-                const recipientIndex = headers.indexOf(recipientCol);
-                const ccIndex = ccCol ? headers.indexOf(ccCol) : -1;
-                const bccIndex = bccCol ? headers.indexOf(bccCol) : -1;
-                const attachmentsIndex = attachmentsCol ? headers.indexOf(attachmentsCol) : -1;
-
-                if (recipientIndex === -1) {
-                    showStatus(`Recipient column '${recipientCol}' was not found in the CSV.`, true);
-                    return;
-                }
-
+            const processAndGenerateEmails = (data, recipientCol, subjectTemplate, bodyTemplate, ccCol, bccCol, attachmentsCol, shouldMerge) => {
                 if (shouldMerge) {
                     // Group rows by recipient
                     const recipientGroups = {};
-                    for (let i = 1; i < rows.length; i++) {
-                        const rowData = rows[i].split(',');
-                        const recipient = rowData[recipientIndex];
+                    data.forEach(row => {
+                        const recipient = row[recipientCol];
                         
-                        if (recipient) {
+                        if (recipient && recipient.trim()) {
                             if (!recipientGroups[recipient]) {
                                 recipientGroups[recipient] = [];
                             }
-                            recipientGroups[recipient].push(rowData);
+                            recipientGroups[recipient].push(row);
                         }
-                    }
+                    });
 
                     let generatedCount = 0;
                     for (const recipient in recipientGroups) {
@@ -288,17 +270,16 @@
                         let allBCCs = new Set();
                         let allAttachments = new Set();
                         let firstSubject = '';
-                        // allVariables will hold the variables of the first row for display in the variables container
                         let firstRowVariables = {}; 
 
-                        rowsForRecipient.forEach((rowData, idx) => {
+                        rowsForRecipient.forEach((row, idx) => {
                             let finalSubject = subjectTemplate;
                             let finalBody = bodyTemplate;
                             
                             const variables = {};
-                            headers.forEach((header, index) => {
+                            csvDataHeaders.forEach(header => {
                                 const placeholder = `{{${header}}}`;
-                                const value = rowData[index] || '';
+                                const value = row[header] || '';
                                 finalSubject = finalSubject.split(placeholder).join(value);
                                 finalBody = finalBody.split(placeholder).join(value);
                                 variables[header] = value;
@@ -306,14 +287,14 @@
 
                             if (idx === 0) {
                                 firstSubject = finalSubject;
-                                firstRowVariables = variables; // Save for display
+                                firstRowVariables = variables;
                             }
 
                             mergedBody += `--- Entry ${idx + 1} ---\n${finalBody}\n\n`;
                             
-                            if (ccIndex !== -1 && rowData[ccIndex]) allCCs.add(rowData[ccIndex]);
-                            if (bccIndex !== -1 && rowData[bccIndex]) allBCCs.add(rowData[bccIndex]);
-                            if (attachmentsIndex !== -1 && rowData[attachmentsIndex]) allAttachments.add(rowData[attachmentsIndex]);
+                            if (ccCol && row[ccCol]) allCCs.add(row[ccCol]);
+                            if (bccCol && row[bccCol]) allBCCs.add(row[bccCol]);
+                            if (attachmentsCol && row[attachmentsCol]) allAttachments.add(row[attachmentsCol]);
                         });
 
                         const ccEmails = Array.from(allCCs).join(', ');
@@ -324,35 +305,33 @@
                         generatedCount++;
                     }
 
-                    showStatus(`Successfully merged and generated ${generatedCount} email draft links (${rows.length - 1} rows combined). Click a link to open it in Outlook, or click the copy button to copy the link.`, false);
+                    showStatus(`Successfully merged and generated ${generatedCount} email draft links (${data.length} rows combined). Click a link to open it in Outlook, or click the copy button to copy the link.`, false);
                 } else {
                     // Original behavior - one email per row
                     let generatedCount = 0;
-                    for (let i = 1; i < rows.length; i++) {
-                        const rowData = rows[i].split(',');
-                        const recipient = rowData[recipientIndex];
+                    data.forEach(row => {
+                        const recipient = row[recipientCol];
 
-                        if (recipient) {
+                        if (recipient && recipient.trim()) {
                             let finalSubject = subjectTemplate;
                             let finalBody = bodyTemplate;
-                            let ccEmail = ccIndex !== -1 ? (rowData[ccIndex] || '') : '';
-                            let bccEmail = bccIndex !== -1 ? (rowData[bccIndex] || '') : '';
-                            let attachments = attachmentsIndex !== -1 ? (rowData[attachmentsIndex] || '') : '';
+                            let ccEmail = ccCol ? (row[ccCol] || '') : '';
+                            let bccEmail = bccCol ? (row[bccCol] || '') : '';
+                            let attachments = attachmentsCol ? (row[attachmentsCol] || '') : '';
 
-                            const variables = {}; // Variables specific to this row
-                            headers.forEach((header, index) => {
+                            const variables = {};
+                            csvDataHeaders.forEach(header => {
                                 const placeholder = `{{${header}}}`;
-                                const value = rowData[index] || '';
+                                const value = row[header] || '';
                                 finalSubject = finalSubject.split(placeholder).join(value);
                                 finalBody = finalBody.split(placeholder).join(value);
-                                variables[header] = value; // Store variables for this row
+                                variables[header] = value;
                             });
                             
-                            // *** FIX: Call the output block function ***
                             createEmailOutputBlock(recipient, finalSubject, finalBody, ccEmail, bccEmail, attachments, variables, false, 1);
                             generatedCount++;
                         }
-                    }
+                    });
 
                     if (generatedCount > 0) {
                         showStatus(`Successfully generated ${generatedCount} email draft links. Click a link to open it in Outlook, or click the copy button to copy the link.`, false);
@@ -362,7 +341,6 @@
                 }
             };
             
-            // *** FIX: Consolidated function to create both single and merged email output blocks ***
             const createEmailOutputBlock = (recipient, subject, body, cc, bcc, attachments, variables, isMerged = false, rowCount = 1) => {
                 const encodedSubject = encodeURIComponent(subject || '');
                 const encodedBody = encodeURIComponent(body || '');
@@ -392,12 +370,11 @@
                 if (cc) linkContent += `<br><span class="font-bold text-sky-300">CC:</span> ${cc}`;
                 if (bcc) linkContent += `<br><span class="font-bold text-purple-300">BCC:</span> ${bcc}`;
                 linkContent += `<br><span class="font-bold text-sky-300">Subject:</span> ${subject || 'No Subject'}`;
-                if (attachments) linkContent += `<br><span class="font-bold text-rose-300">Attachments (Manual):</span> ${attachments}`;
+                if (attachments) linkContent += `<br><span class="font-bold text-rose-300">Note:</span> Remember to manually attach: ${attachments}`;
 
                 linkEl.innerHTML = linkContent;
 
                 linkEl.addEventListener('click', (e) => {
-                    // Only change color/add checkmark if it's the first time being clicked
                     if (!linkEl.dataset.clicked) {
                         linkEl.classList.remove('bg-gray-700', 'hover:bg-gray-600', 'text-gray-200');
                         linkEl.classList.add('bg-green-800', 'text-green-200');
@@ -418,30 +395,34 @@
                     <path d="M8 2a2 2 0 00-2 2v2H4a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-2h2a2 2 0 002-2V8a2 2 0 00-2-2h-2V4a2 2 0 00-2-2h-4zM6 4a.5.5 0 01.5-.5h4a.5.5 0 01.5.5v2.5a.5.5 0 01-.5.5h-4a.5.5 0 01-.5-.5V4zm5 9H9a1 1 0 00-1 1v2a1 1 0 002 0v-2a1 1 0 00-1-1zm-1-6V8a2 2 0 002 2h2v4H8V7z" />
                 </svg>`;
                 copyButton.onclick = () => {
-                    copyToClipboard(mailtoHref);
-                    showStatus('Copied mailto link to clipboard!', false);
+                    navigator.clipboard.writeText(mailtoHref).then(() => {
+                        showStatus('Copied mailto link to clipboard!', false);
+                    }).catch(err => {
+                        console.error('Failed to copy:', err);
+                        showStatus('Failed to copy link. Please try again.', true);
+                    });
                 };
                 
                 const variablesToggleBtn = document.createElement('button');
                 variablesToggleBtn.className = "shrink-0 p-3 bg-gray-700 hover:bg-gray-600 transition-colors duration-200 rounded-lg text-sm shadow-sm";
-                variablesToggleBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                variablesToggleBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                 </svg>`;
                 
                 const variablesContainer = document.createElement('div');
-                variablesContainer.className = "hidden pl-4 pr-2 pb-2 text-xs text-gray-400 overflow-x-auto";
-                let varsHtml = '<p class="font-bold text-gray-300 mb-1">Variables used:</p>';
-                // *** FIX: Use the 'variables' object passed in (which is the single row's or the first row's in a merge) ***
+                variablesContainer.className = "hidden pl-4 pr-2 pb-2 text-xs text-gray-400 overflow-x-auto bg-gray-750 rounded p-3 mt-2";
+                let varsHtml = `<p class="font-bold text-gray-300 mb-2">${isMerged ? 'Variables used (from first entry):' : 'Variables used:'}</p>`;
                 for (const key in variables) {
                     if (variables.hasOwnProperty(key)) {
-                        varsHtml += `<p><span class="font-semibold text-gray-300">${key}:</span> ${variables[key]}</p>`;
+                        varsHtml += `<p class="mb-1"><span class="font-semibold text-gray-300">${key}:</span> ${variables[key]}</p>`;
                     }
                 }
                 variablesContainer.innerHTML = varsHtml;
 
                 variablesToggleBtn.onclick = () => {
                     variablesContainer.classList.toggle('hidden');
-                    variablesToggleBtn.querySelector('svg').classList.toggle('rotate-180');
+                    const svg = variablesToggleBtn.querySelector('svg');
+                    svg.classList.toggle('rotate-180');
                 };
                 
                 headerRow.appendChild(linkEl);
@@ -452,24 +433,6 @@
                 blockContainerEl.appendChild(variablesContainer);
 
                 linksContainerEl.appendChild(blockContainerEl);
-            };
-
-            // Remove the duplicate function from the original code that only handled merged emails
-            // const createMergedEmailOutputBlock = (recipient, subject, body, cc, bcc, attachments, allVariables) => { ... }
-
-
-            const copyToClipboard = (text) => {
-                const tempTextarea = document.createElement('textarea');
-                tempTextarea.value = text;
-                document.body.appendChild(tempTextarea);
-                tempTextarea.select();
-                try {
-                    document.execCommand('copy');
-                } catch (err) {
-                    console.error('Failed to copy text: ', err);
-                } finally {
-                    document.body.removeChild(tempTextarea);
-                }
             };
         });
     </script>
