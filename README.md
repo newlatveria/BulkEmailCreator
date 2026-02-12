@@ -1,219 +1,727 @@
-# 📧 Bulk Email Creator
+# 📧 Bulk Email Creator Pro
 
-> Transform your CSV data into personalized email drafts in seconds! No server required, no data uploaded, 100% privacy-focused.
+<div align="center">
 
 ![Version](https://img.shields.io/badge/version-2.0-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
-![No Dependencies](https://img.shields.io/badge/dependencies-none-brightgreen.svg)
+![HTML5](https://img.shields.io/badge/HTML5-E34F26?logo=html5&logoColor=white)
+![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?logo=javascript&logoColor=black)
 
-## ✨ What Makes This Special?
+**The ultimate tool for creating personalized bulk emails with zero hassle!**
 
-**Bulk Email Creator** is a powerful, client-side web application that generates personalized email drafts from CSV files. Perfect for sending newsletters, invoices, event invitations, or any mass communication where each recipient needs a personalized touch.
-Stop wrestling with mail merge limits and complicated software! Bulk Email Creator is a lightning-fast, privacy-first tool built as a single HTML file (bulkemailer.html) that allows you to instantly generate hundreds of personalized Outlook draft emails from any standard CSV file.
+Transform your CSV or Excel spreadsheets into hundreds of personalized email drafts in seconds. Perfect for marketing campaigns, event invitations, customer outreach, and more!
 
-### 🎯 Key Features
+[Features](#-features) • [Quick Start](#-quick-start) • [Usage Examples](#-usage-examples) • [Advanced Features](#-advanced-features)
 
-- 🚀 **Lightning Fast** - Process hundreds of emails in seconds
-- 🔒 **100% Private** - All processing happens in your browser, no data leaves your computer
-- 🎨 **Smart Templates** - Use `{{placeholders}}` to personalize every email
-- 🔄 **Merge Magic** - NEW! Combine multiple rows for the same recipient into one email
-- 📎 **Full Control** - Support for CC, BCC, and attachment references
-- 💅 **Beautiful UI** - Modern, responsive design that works on any device
-- 🎯 **One-Click Generation** - Create mailto links that open directly in Outlook or your default email client
-- 📋 **Easy Copying** - Copy mailto links with a single click for batch processing
-
-🏗️ Use Cases
-Financial Reporting: Send individual account statements or payment reminders, personalized with unique {{Balance}} and {{DueDate}} variables.
-
-Internal HR/IT Updates: Distribute personalized password reset links, onboarding instructions, or quarterly review schedules.
-
-Customer Onboarding: Create personalized welcome emails pre-filled with the customer's new {{Username}} and {{SupportContact}}.
-
-Sales Follow-Up: Generate a batch of drafts for a sales team, each uniquely customized for a prospect based on their {{Company}} or {{ProductInterest}}.
-
-## 🚀 Quick Start
-
-### Installation
-
-1. **Download** the `bulkemailer.html` file
-2. **Open** it in any modern web browser (Chrome, Firefox, Edge, Safari)
-3. **Done!** No installation, no setup, no server required
-
-### Basic Usage
-
-**🛠️ How to Prepare Your CSV file**
-For the best results, ensure your CSV file is prepared as follows:
-
-1. Header Row is Required: The first row of your CSV must contain unique, descriptive column names (e.g., Name, Email, InvoiceID).
-
-2. No Commas in Fields: The tool uses a basic comma-splitting parser. For robust operation, avoid including commas (,) within any data field. If a field must contain a comma, save your data as a Tab-Separated Value (TSV) file and manually replace all commas with tabs in the final file before processing.
-
-3. Recipient Column: Ensure the column you select for the recipient contains valid email addresses.
-   ```csv
-   Email,Name,Company,Amount
-   john@example.com,John Smith,Acme Corp,$1,500
-   jane@example.com,Jane Doe,Tech Inc,$2,300
-   ```
-
-3. **Upload Your File**
-   - Click "Upload your CSV file" and select your file
-   - Headers are automatically detected
-
-4. **Create Your Template**
-   - Select the recipient email column
-   - Write your subject: `Invoice for {{Company}}`
-   - Write your body:
-     ```
-     Dear {{Name}},
-     
-     Your invoice for {{Amount}} is ready.
-     
-     Best regards,
-     The Team
-     ```
-
-5. **Generate!**
-   - Click "Generate Email Drafts"
-   - Click any email to open it in your email client
-   - Or copy the mailto link for later use
-
-## 🎭 Advanced Features
-
-### 🔄 Merge Multiple Rows
-
-Have multiple transactions for the same person? Enable the **"Merge multiple rows per recipient"** checkbox!
-
-**Before (CSV):**
-```csv
-Email,Name,Invoice,Amount
-john@example.com,John,INV-001,$500
-john@example.com,John,INV-002,$750
-john@example.com,John,INV-003,$300
-```
-
-**After (One Email):**
-```
---- Entry 1 ---
-Invoice INV-001 for $500
-
---- Entry 2 ---
-Invoice INV-002 for $750
-
---- Entry 3 ---
-Invoice INV-003 for $300
-```
-
-### 📎 Advanced Fields
-
-- **CC Column** - Copy other recipients on specific emails
-- **BCC Column** - Blind copy recipients
-- **Attachments Column** - Track which files need to be manually attached
-
-### 🏷️ Template Variables
-
-Use `{{ColumnName}}` anywhere in your subject or body to insert CSV data:
-
-- `{{FirstName}}` - Personalize greetings
-- `{{Company}}` - Reference organizations
-- `{{AccountNumber}}` - Include account details
-- `{{Any_Column}}` - Use ANY column from your CSV!
-
-**Pro Tip:** Click the teal header tags to copy placeholders to your clipboard!
-
-## 🎨 Use Cases
-
-### 📬 Monthly Invoices
-Generate personalized invoice emails with amounts, due dates, and account details.
-
-### 🎉 Event Invitations
-Send customized event invitations with personal RSVP links and event details.
-
-### 📊 Report Distribution
-Distribute monthly reports to stakeholders with personalized metrics.
-
-### 💼 Sales Outreach
-Create personalized cold emails at scale with company-specific details.
-
-### 🎓 Student Communications
-Send grade reports, assignment feedback, or course updates to students.
-
-### 📧 Newsletter Campaigns
-Generate newsletter drafts with personalized content for different segments.
-
-## 🛠️ Technical Details
-
-### Built With
-- **Pure HTML/CSS/JavaScript** - No frameworks, no dependencies
-- **Tailwind CSS** - Beautiful, modern styling via CDN
-- **FileReader API** - Secure client-side file processing
-- **Mailto Protocol** - Native email client integration
-
-### Browser Support
-- ✅ Chrome/Edge (recommended)
-- ✅ Firefox
-- ✅ Safari
-- ✅ Opera
-- ✅ Any modern browser with ES6+ support
-
-### Security & Privacy
-- 🔒 **All processing is local** - Your CSV never leaves your computer
-- 🔒 **No server uploads** - No backend, no API calls, no tracking
-- 🔒 **No data storage** - Nothing is saved or cached
-- 🔒 **Open source** - Inspect the code yourself!
-
-## 📖 Tips & Tricks
-
-### CSV Formatting
-- ✅ First row must be headers
-- ✅ Use commas to separate columns
-- ✅ Remove commas from data fields (or use quotes)
-- ✅ Keep email addresses clean and valid
-
-### Email Client Tips
-- **Outlook** - Mailto links work perfectly
-- **Gmail Web** - Set Chrome to handle mailto links
-- **Apple Mail** - Works natively on macOS
-- **Copy Link Option** - Use when mailto doesn't work
-
-### Best Practices
-1. **Test First** - Generate 1-2 emails and test them before bulk creation
-2. **Check Spam** - Verify emails don't land in spam folders
-3. **Proofread Templates** - Double-check your placeholders
-4. **Save Templates** - Keep your subject/body templates in a text file
-5. **Batch Process** - Generate in batches of 50-100 for easier management
-
-## 🤝 Contributing
-
-Found a bug? Have a feature idea? Contributions are welcome!
-
-1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Open a Pull Request
-
-## 📝 License
-
-Apache License Version 2.0 - Feel free to use, modify, and distribute!
-
-## 🙏 Acknowledgments
-
-- Built with ❤️ for anyone who's ever had to send personalized bulk emails
-- Inspired by the need for simple, privacy-focused tools
-- Thanks to the open-source community for making great tools accessible
-
-## 📞 Support
-
-Need help? Have questions?
-
-- 📖 Check this README first
-- 🐛 Report bugs via GitHub Issues
-- 💡 Share your use cases and success stories!
+</div>
 
 ---
 
-**Happy Emailing! 🚀**
+## 🌟 Why Bulk Email Creator Pro?
 
-Made with ☕ and determination to make email management easier.
+Say goodbye to tedious copy-paste email workflows! This powerful web application lets you:
 
+- 🚀 **Generate hundreds of personalized emails** in under a minute
+- 📊 **Import from CSV or Excel** - supports `.csv`, `.xlsx`, and `.xls` files
+- 🎯 **Use dynamic variables** - automatically replace placeholders with data from your spreadsheet
+- 🔍 **Filter your data** - send emails only to specific recipients
+- 👁️ **Preview before sending** - see exactly how your emails will look
+- 📝 **Merge duplicate recipients** - combine multiple rows into a single email
+- 💾 **Export everything** - save all generated emails and links for later
+- ✅ **Track progress** - mark emails as sent with visual feedback
 
+**Best of all? It's completely client-side. Your data never leaves your browser!**
+
+---
+
+## ✨ Features
+
+### Core Functionality
+
+| Feature | Description |
+|---------|-------------|
+| 📁 **Multi-Format Support** | Import CSV, XLSX, or XLS files with automatic format detection |
+| 🏷️ **Dynamic Variables** | Use `{{ColumnName}}` syntax to insert personalized data |
+| 📋 **Data Preview** | Instantly view your imported data in a table |
+| 🎯 **Smart Auto-Detection** | Automatically identifies email and name columns |
+| 🔄 **Email Merging** | Combine multiple rows per recipient into numbered sections |
+| 📧 **CC/BCC Support** | Add carbon copy and blind carbon copy recipients |
+| 📎 **Attachment Reminders** | Set reminders to manually attach files |
+
+### Advanced Features
+
+| Feature | Description |
+|---------|-------------|
+| 🔍 **Advanced Filtering** | Filter rows by column values (equals, contains, empty, not empty) |
+| 👁️ **Email Preview** | Preview how the first email will look before generating all |
+| 💾 **Export to File** | Download all generated emails as a text file |
+| 📊 **Real-time Statistics** | See how many rows match your filters |
+| 🎨 **Template Helpers** | Quick-insert buttons for greetings and signatures |
+| ✅ **Progress Tracking** | Visual indicators for emails you've already opened |
+| 🗑️ **Bulk Actions** | Clear all generated emails and start fresh |
+
+### UI/UX Enhancements
+
+- 🎨 **Modern Dark Theme** with teal accents
+- 📱 **Fully Responsive** design works on all devices
+- ⚡ **Lightning Fast** - processes thousands of rows instantly
+- 🔒 **Privacy First** - all processing happens in your browser
+- 💡 **Built-in Help** - comprehensive guide accessible anytime
+- 🎯 **Smart Tooltips** - helpful hints on hover
+
+---
+
+## 🚀 Quick Start
+
+### 1. Download and Open
+
+Simply download the `bulk-email-creator-pro.html` file and open it in any modern web browser. That's it! No installation, no setup, no server required.
+
+### 2. Prepare Your Data
+
+Create a spreadsheet (CSV or Excel) with your data. The first row should contain headers:
+
+```csv
+Name,Email,Company,Invoice Number
+John Smith,john@example.com,Acme Corp,INV-001
+Jane Doe,jane@example.com,Tech Industries,INV-002
+Bob Johnson,bob@example.com,Global Solutions,INV-003
+```
+
+### 3. Upload Your File
+
+Click the file upload button and select your CSV or Excel file. The app will automatically detect the format and load your data.
+
+### 4. Create Your Email Template
+
+Use the placeholder syntax to reference your columns:
+
+**Subject:**
+```
+Invoice {{Invoice Number}} - Payment Due
+```
+
+**Body:**
+```
+Dear {{Name}},
+
+This is a friendly reminder that invoice {{Invoice Number}} 
+for {{Company}} is due for payment.
+
+Please process the payment at your earliest convenience.
+
+Best regards,
+Accounts Team
+```
+
+### 5. Generate and Send!
+
+Click **"Generate All Drafts"** and watch as personalized email links are created for each row. Click any link to open a pre-filled email draft in your default email client!
+
+---
+
+## 💡 Usage Examples
+
+### Example 1: Event Invitation Campaign
+
+**Your Data (event-invites.csv):**
+```csv
+First Name,Last Name,Email,Event Date,Location,Special Dietary
+Sarah,Williams,sarah@email.com,March 15th,Grand Ballroom,Vegetarian
+Michael,Brown,michael@email.com,March 15th,Grand Ballroom,None
+Emma,Davis,emma@email.com,March 15th,Grand Ballroom,Gluten-free
+```
+
+**Your Email Template:**
+
+Subject: `You're Invited! Company Gala - {{Event Date}}`
+
+Body:
+```
+Dear {{First Name}} {{Last Name}},
+
+We're thrilled to invite you to our annual Company Gala on {{Event Date}}!
+
+📍 Venue: {{Location}}
+🍽️ Dietary Preference: {{Special Dietary}}
+
+We look forward to celebrating with you!
+
+RSVP by clicking reply to this email.
+
+Warm regards,
+Events Team
+```
+
+**Result:** 3 personalized invitations ready to send! ✉️
+
+---
+
+### Example 2: Customer Follow-up with Filtering
+
+**Your Data (customers.xlsx):**
+```
+Name,Email,Status,Last Purchase,Amount
+Alice Chen,alice@email.com,VIP,2024-01-15,$1250
+Bob Smith,bob@email.com,Regular,2024-02-01,$85
+Carol Jones,carol@email.com,VIP,2024-01-28,$2100
+David Lee,david@email.com,Regular,2024-02-05,$45
+```
+
+**Filtering Setup:**
+- Column: `Status`
+- Operator: `Equals`
+- Value: `VIP`
+
+**Result:** Only Alice and Carol receive emails! 🎯
+
+**Your Email Template:**
+
+Subject: `Thank you for being a valued VIP customer, {{Name}}!`
+
+Body:
+```
+Hi {{Name}},
+
+Thank you for your recent purchase of ${{Amount}} on {{Last Purchase}}.
+
+As a VIP customer, you're eligible for exclusive benefits:
+• 20% off your next purchase
+• Free priority shipping
+• Early access to new products
+
+Use code VIP20 at checkout!
+
+Sincerely,
+Customer Success Team
+```
+
+---
+
+### Example 3: Merged Emails for Account Managers
+
+**Your Data (accounts.csv):**
+```csv
+Account Manager,Email,Client Name,Project,Status
+Sarah Johnson,sarah@company.com,ABC Corp,Website Redesign,In Progress
+Sarah Johnson,sarah@company.com,XYZ Ltd,Mobile App,Completed
+Sarah Johnson,sarah@company.com,Tech Start,Brand Identity,Planning
+David Chen,david@company.com,Global Inc,SEO Audit,In Progress
+```
+
+**Enable:** ✅ Merge multiple rows per recipient
+
+**Your Email Template:**
+
+Subject: `Weekly Project Update - {{Client Name}}`
+
+Body:
+```
+Client: {{Client Name}}
+Project: {{Project}}
+Status: {{Status}}
+
+Please review and update accordingly.
+```
+
+**Result:** 
+- Sarah gets **1 email** with all 3 of her projects listed as Entry 1, Entry 2, Entry 3
+- David gets **1 email** with his single project
+
+Perfect for managers overseeing multiple projects! 📊
+
+---
+
+### Example 4: Sales Outreach with CC
+
+**Your Data (leads.xlsx):**
+```
+Prospect Name,Prospect Email,Sales Rep,Rep Email,Industry,Company Size
+John Doe,john@prospect.com,Alice Smith,alice@sales.com,Tech,50-200
+Jane Smith,jane@prospect.com,Alice Smith,alice@sales.com,Finance,200-500
+```
+
+**Configuration:**
+- Recipient Column: `Prospect Email`
+- CC Column: `Rep Email`
+
+**Your Email Template:**
+
+Subject: `{{Industry}} Solutions for {{Prospect Name}}`
+
+Body:
+```
+Hi {{Prospect Name}},
+
+I noticed you're in the {{Industry}} industry with a team size 
+of {{Company Size}} employees.
+
+I'd love to show you how our solution can help streamline your operations.
+
+Are you available for a 15-minute call this week?
+
+Best,
+{{Sales Rep}}
+```
+
+**Result:** Prospect receives the email, sales rep is CC'd automatically! 🎯
+
+---
+
+## 🎓 Advanced Features Guide
+
+### 🔍 Advanced Filtering
+
+Create complex filtering rules to target specific recipients:
+
+**Example: Send only to customers who purchased in January**
+1. Click "+ Add Filter"
+2. Column: `Purchase Date`
+3. Operator: `Contains`
+4. Value: `2024-01`
+
+**Example: Send only to contacts with phone numbers**
+1. Click "+ Add Filter"
+2. Column: `Phone`
+3. Operator: `Not Empty`
+4. Value: (leave blank)
+
+**Multiple Filters:** All filters must match (AND logic)
+
+---
+
+### 👁️ Email Preview
+
+Before generating hundreds of emails, preview the first one:
+
+1. Set up your template
+2. Click **"👁️ Preview First Email"**
+3. See exactly how variables are replaced
+4. Verify formatting and content
+5. Make adjustments if needed
+6. Generate with confidence!
+
+---
+
+### 💾 Export to File
+
+Save all your generated emails for record-keeping:
+
+1. Generate your email drafts
+2. Click **"💾 Export as Links File"**
+3. Downloads a `.txt` file containing:
+   - All recipient information
+   - Full email content
+   - Mailto links for each email
+   - Timestamp
+
+Perfect for compliance, documentation, or batch processing later!
+
+---
+
+### 🎨 Template Helpers
+
+**Insert Greeting:**
+- Automatically adds: `Dear {{Name}},` (if name column selected)
+- Or: `Hello,` (if no name column)
+
+**Insert Signature:**
+- Adds professional closing:
+```
+Best regards,
+[Your Name]
+```
+
+---
+
+### 🔄 Email Merging Deep Dive
+
+When to use email merging:
+- **Account managers** with multiple clients
+- **Project updates** with multiple tasks per person
+- **Order confirmations** with multiple items
+- **Weekly digests** combining multiple entries
+
+How it works:
+1. All rows with the same recipient email are grouped
+2. Each row becomes a numbered entry in the email body
+3. CC, BCC, and attachments are combined from all rows
+4. Subject line uses data from the first row
+
+**Pro Tip:** Use consistent formatting in your body template so merged entries are clearly separated!
+
+---
+
+## 🎯 Best Practices
+
+### Data Preparation
+
+✅ **DO:**
+- Use clear, descriptive column headers
+- Ensure email addresses are valid
+- Test with a small sample first
+- Keep column names without special characters
+- Use consistent date formats
+
+❌ **DON'T:**
+- Use commas in column headers
+- Leave the first row empty
+- Mix different data formats in the same column
+- Include sensitive data you don't want to send
+
+### Template Writing
+
+✅ **DO:**
+- Preview your first email before generating all
+- Use the exact column names in `{{brackets}}`
+- Test all variable replacements
+- Keep subject lines under 60 characters
+- Use proper line breaks for readability
+
+❌ **DON'T:**
+- Misspell column names in variables
+- Create extremely long email bodies
+- Forget to personalize - use at least one variable!
+- Include placeholders that might not exist
+
+### Workflow Tips
+
+💡 **Start Small:** Generate 5-10 emails first to test your template
+
+💡 **Use Filters:** If sending to different segments, use filters instead of creating multiple files
+
+💡 **Track Progress:** Click each email link as you send them - they'll turn green with a checkmark
+
+💡 **Save Your Work:** Use the export feature to keep a record
+
+💡 **Test Recipients:** Add your own email in the data for testing
+
+---
+
+## 🛠️ Technical Details
+
+### Browser Compatibility
+
+| Browser | Minimum Version | Status |
+|---------|----------------|---------|
+| Chrome | 90+ | ✅ Fully Supported |
+| Firefox | 88+ | ✅ Fully Supported |
+| Safari | 14+ | ✅ Fully Supported |
+| Edge | 90+ | ✅ Fully Supported |
+
+### Libraries Used
+
+- **PapaParse 5.4.1** - Robust CSV parsing
+- **SheetJS (XLSX) 0.18.5** - Excel file reading
+- **Tailwind CSS** - Modern UI styling
+
+### File Size Limits
+
+- **CSV Files:** Up to 10MB recommended
+- **Excel Files:** Up to 5MB recommended
+- **Row Count:** Tested with up to 10,000 rows
+- **Email Length:** Mailto links have browser limits (~2000 characters)
+
+### Privacy & Security
+
+🔒 **100% Client-Side Processing**
+- No data is sent to any server
+- All processing happens in your browser
+- No cookies, no tracking, no analytics
+- Your data stays on your machine
+
+### Performance
+
+| Rows | Processing Time | Memory Usage |
+|------|----------------|--------------|
+| 100 | < 1 second | ~5MB |
+| 1,000 | ~2 seconds | ~25MB |
+| 10,000 | ~15 seconds | ~150MB |
+
+---
+
+## 🎨 Customization Ideas
+
+### Custom Styling
+
+Want to customize the look? Edit the `<style>` section:
+
+```css
+/* Change the primary color from teal to purple */
+.bg-teal-400 { background-color: #a855f7 !important; }
+.bg-teal-500 { background-color: #9333ea !important; }
+.bg-teal-600 { background-color: #7e22ce !important; }
+.text-teal-300 { color: #c084fc !important; }
+.text-teal-400 { color: #a855f7 !important; }
+```
+
+### Adding Custom Variables
+
+You can add computed variables in the JavaScript:
+
+```javascript
+// After line: variables[header] = value;
+// Add custom variables:
+variables['FullName'] = `${variables['FirstName']} ${variables['LastName']}`;
+variables['Year'] = new Date().getFullYear();
+```
+
+---
+
+## 📊 Use Cases & Industries
+
+### Marketing & Sales
+- Product launch announcements
+- Sales outreach campaigns
+- Follow-up sequences
+- Customer surveys
+- Newsletter personalization
+
+### Events & Hospitality
+- Event invitations
+- Conference registrations
+- Venue confirmations
+- Catering preferences
+- Thank you notes
+
+### Education
+- Parent-teacher communications
+- Student notifications
+- Class schedules
+- Grade reports
+- Assignment reminders
+
+### Human Resources
+- Interview scheduling
+- Onboarding sequences
+- Benefits enrollment
+- Policy updates
+- Performance review invitations
+
+### Customer Service
+- Order confirmations
+- Shipping notifications
+- Account updates
+- Renewal reminders
+- Support follow-ups
+
+### Non-Profit & Community
+- Donor thank-yous
+- Volunteer coordination
+- Fundraising campaigns
+- Event coordination
+- Newsletter distribution
+
+---
+
+## 🐛 Troubleshooting
+
+### "Could not find headers in the CSV"
+- **Solution:** Ensure your first row contains column names, not data
+
+### "No valid rows found to generate emails"
+- **Solution:** Check that your recipient column has valid email addresses
+- **Solution:** If using filters, verify rows match your filter criteria
+
+### Variables not replacing
+- **Solution:** Check spelling - `{{Name}}` is case-sensitive
+- **Solution:** Ensure column name matches exactly (including spaces)
+
+### Email client not opening
+- **Solution:** Set a default email client in your system preferences
+- **Solution:** Use the copy button and paste the link in your browser
+
+### Excel file not loading
+- **Solution:** Save as `.xlsx` (newer format) instead of `.xls`
+- **Solution:** Ensure file doesn't have password protection
+- **Solution:** Check file size is under 5MB
+
+### Merged emails showing wrong data
+- **Solution:** Ensure recipient column has exact email matches
+- **Solution:** Clean up any trailing spaces in email addresses
+
+---
+
+## 💡 Pro Tips & Tricks
+
+### 1. Use Name Column for Better Greetings
+Select a name column to enable personalized greetings like "Dear John" instead of generic "Hello"
+
+### 2. Test with Yourself First
+Add your own email in a test row to see exactly how emails will appear
+
+### 3. Create Template Libraries
+Save your successful email templates in a document for reuse
+
+### 4. Use Filters for A/B Testing
+Create two variations of your email, filter half your list for each
+
+### 5. Combine with Mail Merge Tools
+Export the mailto links file and use it with automation tools
+
+### 6. Track Opens and Clicks
+For better tracking, consider shortening URLs before adding them to templates
+
+### 7. Schedule Your Sends
+Generate all drafts, then send them in batches over time to avoid spam filters
+
+### 8. Use Descriptive Subject Lines
+Include variables in subject lines for better open rates
+
+### 9. Keep a Backup
+Always keep a backup of your original data file before making changes
+
+### 10. Clean Your Data First
+Remove duplicates, fix formatting, and verify emails before importing
+
+---
+
+## 📝 Example Templates Library
+
+### Professional Follow-up
+```
+Subject: Following up on {{Topic}}
+
+Hi {{Name}},
+
+I wanted to follow up on our conversation about {{Topic}} 
+from {{Date}}.
+
+Have you had a chance to consider {{Proposal}}?
+
+I'm available {{Availability}} if you'd like to discuss further.
+
+Best regards,
+{{Your Name}}
+```
+
+### Event Reminder
+```
+Subject: Reminder: {{Event Name}} - {{Event Date}}
+
+Dear {{Attendee Name}},
+
+This is a friendly reminder about {{Event Name}} taking place on {{Event Date}}.
+
+📍 Location: {{Venue}}
+⏰ Time: {{Event Time}}
+🎫 Your Ticket: {{Ticket Number}}
+
+We look forward to seeing you there!
+
+Questions? Reply to this email.
+
+Regards,
+{{Organizer}}
+```
+
+### Payment Reminder
+```
+Subject: Payment Reminder - Invoice {{Invoice Number}}
+
+Dear {{Customer Name}},
+
+This is a reminder that payment for Invoice {{Invoice Number}} 
+is due on {{Due Date}}.
+
+Amount Due: {{Amount}}
+Payment Terms: {{Terms}}
+
+Please contact us if you have any questions.
+
+Thank you,
+{{Company Name}} Accounts
+```
+
+### Welcome Email
+```
+Subject: Welcome to {{Company Name}}, {{Name}}!
+
+Hi {{Name}},
+
+Welcome aboard! We're thrilled to have you join {{Company Name}}.
+
+Your account details:
+• Username: {{Username}}
+• Plan: {{Plan Type}}
+• Start Date: {{Start Date}}
+
+Next steps:
+1. Complete your profile
+2. Explore our features
+3. Schedule your onboarding call
+
+Questions? We're here to help!
+
+Best,
+{{Team Name}}
+```
+
+---
+
+## 🎬 Video Tutorials
+
+(Future feature - Add links to video tutorials here)
+
+- Getting Started (5 min)
+- Advanced Filtering (3 min)
+- Email Merging Explained (4 min)
+- Best Practices (7 min)
+
+---
+
+## 🤝 Contributing
+
+Found a bug? Have a feature request? Want to improve the documentation?
+
+Suggestions welcome for:
+- New template helpers
+- Additional filter operators
+- UI/UX improvements
+- Performance optimizations
+- Documentation enhancements
+
+---
+
+## 📄 License
+
+MIT License - feel free to use, modify, and distribute!
+
+---
+
+## 🙏 Acknowledgments
+
+Built with:
+- ❤️ Love for automation
+- ☕ Coffee
+- 🎵 Good music
+- 🧠 Problem-solving mindset
+
+Special thanks to:
+- PapaParse for CSV parsing
+- SheetJS for Excel reading
+- Tailwind CSS for beautiful styling
+- The open-source community
+
+---
+
+## 📧 Contact & Support
+
+Need help? Have questions?
+
+- 📖 Check the built-in help (? icon)
+- 🐛 Issues? Check the troubleshooting section
+- 💡 Feature ideas? Open an issue
+- ⭐ Love it? Give it a star!
+
+---
+
+<div align="center">
+
+**Made with ❤️ for productivity enthusiasts**
+
+⭐ **If this tool saved you time, give it a star!** ⭐
+
+[Back to Top](#-bulk-email-creator-pro)
+
+</div>

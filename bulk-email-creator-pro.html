@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bulk Email Creator Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .rotate-180 {
+            transform: rotate(180deg);
+        }
+        .transition-transform {
+            transition: transform 0.2s ease-in-out;
+        }
+        /* Custom scrollbar */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #374151;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #6b7280;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-gray-100 antialiased leading-relaxed">
+
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-gray-800 text-gray-200 p-8 rounded-xl shadow-2xl w-full max-w-3xl transform transition-all duration-500 ease-in-out hover:scale-[1.01]">
+            <div class="flex items-center justify-between mb-2">
+                <h1 class="text-4xl font-extrabold text-teal-400">Bulk Email Creator Pro</h1>
+                <button id="helpBtn" class="p-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </button>
+            </div>
+            <p class="text-sm text-gray-400 mb-6">Generate multiple email drafts from CSV or Excel files with advanced features.</p>
+            
+            <!-- Help Modal -->
+            <div id="helpModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                <div class="bg-gray-800 rounded-xl p-6 max-w-2xl max-h-[90vh] overflow-y-auto custom-scrollbar">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-2xl font-bold text-teal-400">How to Use</h2>
+                        <button id="closeHelpBtn" class="p-2 hover:bg-gray-700 rounded-lg transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="space-y-4 text-sm text-gray-300">
+                        <div>
+                            <h3 class="font-bold text-teal-300 mb-2">📁 File Format</h3>
+                            <p>Upload a CSV or Excel file (.xlsx, .xls) with headers in the first row and data in subsequent rows.</p>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-teal-300 mb-2">🏷️ Using Variables</h3>
+                            <p>Click any header tag to copy it, then paste into your subject or body. Example: <code class="bg-gray-700 px-1 rounded">{{Name}}</code> will be replaced with each person's name.</p>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-teal-300 mb-2">🔄 Merge Feature</h3>
+                            <p>Enable "Merge emails" to combine multiple rows with the same recipient into one email with numbered sections.</p>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-teal-300 mb-2">📧 Sending Emails</h3>
+                            <p>Click any generated link to open a draft in your default email client. The link contains all recipients, subject, and body text.</p>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-teal-300 mb-2">💾 Preview Feature</h3>
+                            <p>Use the preview button to see how your first email will look before generating all drafts.</p>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-teal-300 mb-2">📎 Attachments</h3>
+                            <p>Attachment columns show reminders but cannot auto-attach files. You'll need to attach files manually when composing.</p>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-teal-300 mb-2">🔍 Filtering</h3>
+                            <p>Use the filter feature to only generate emails for specific rows based on column values.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="space-y-6">
+                <!-- File Upload Section -->
+                <div>
+                    <label for="csvFile" class="block text-sm font-medium text-gray-300 mb-2">1. Upload your file</label>
+                    <div class="flex gap-2 items-center">
+                        <input type="file" id="csvFile" accept=".csv,.xlsx,.xls" class="flex-grow text-sm text-gray-400
+                            file:mr-4 file:py-2 file:px-4
+                            file:rounded-full file:border-0
+                            file:text-sm file:font-semibold
+                            file:bg-teal-500 file:text-white
+                            hover:file:bg-teal-600 transition-colors duration-200 cursor-pointer">
+                        <span class="text-xs text-gray-500">CSV, XLSX, XLS</span>
+                    </div>
+                </div>
+
+                <!-- Data Preview Section -->
+                <div id="preview-section" class="hidden">
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="block text-sm font-medium text-gray-300">📊 Data Preview</label>
+                        <span id="rowCount" class="text-xs text-gray-400"></span>
+                    </div>
+                    <div class="bg-gray-700 rounded-lg p-3 overflow-x-auto custom-scrollbar max-h-48">
+                        <table id="dataPreviewTable" class="text-xs w-full">
+                            <thead id="previewTableHead"></thead>
+                            <tbody id="previewTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Headers Section -->
+                <div id="headers-section" class="hidden">
+                    <label class="block text-sm font-medium text-gray-300 mb-2">2. Available Headers (Click to copy)</label>
+                    <div id="headerTags" class="flex flex-wrap gap-2 mb-4 p-3 bg-gray-700 rounded-lg max-h-32 overflow-y-auto custom-scrollbar">
+                    </div>
+                </div>
+
+                <!-- Filter Section -->
+                <div id="filter-section" class="hidden">
+                    <div class="bg-gray-700 rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <label class="text-sm font-medium text-gray-300">🔍 Filter Data (Optional)</label>
+                            <button id="addFilterBtn" class="text-xs bg-teal-600 hover:bg-teal-500 text-white px-3 py-1 rounded-full transition-colors">
+                                + Add Filter
+                            </button>
+                        </div>
+                        <div id="filterContainer" class="space-y-2">
+                        </div>
+                        <div id="filterStats" class="mt-3 text-xs text-gray-400 hidden"></div>
+                    </div>
+                </div>
+
+                <!-- Email Configuration -->
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="recipientColumn" class="block text-sm font-medium text-gray-300 mb-2">3. Recipient Column *</label>
+                        <select id="recipientColumn" class="w-full p-2.5 rounded-lg bg-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-500"></select>
+                    </div>
+                    <div>
+                        <label for="nameColumn" class="block text-sm font-medium text-gray-300 mb-2">Name Column (Optional)</label>
+                        <select id="nameColumn" class="w-full p-2.5 rounded-lg bg-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                            <option value="">None</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div>
+                    <label for="subjectTemplate" class="block text-sm font-medium text-gray-300 mb-2">4. Email Subject *</label>
+                    <input type="text" id="subjectTemplate" placeholder="e.g., Your monthly update from {{Company}}" class="w-full p-2.5 rounded-lg bg-gray-700 text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                </div>
+
+                <div>
+                    <label for="bodyTemplate" class="block text-sm font-medium text-gray-300 mb-2">5. Email Body *</label>
+                    <textarea id="bodyTemplate" rows="8" placeholder="e.g., Dear {{Name}},&#10;&#10;Your account number {{AccountNumber}} is now ready.&#10;&#10;Best regards,&#10;The Team" class="w-full p-2.5 rounded-lg bg-gray-700 text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500"></textarea>
+                    <div class="flex gap-2 mt-2">
+                        <button id="insertGreetingBtn" class="text-xs bg-gray-600 hover:bg-gray-500 text-white px-3 py-1 rounded-full transition-colors">
+                            Insert Greeting
+                        </button>
+                        <button id="insertSignatureBtn" class="text-xs bg-gray-600 hover:bg-gray-500 text-white px-3 py-1 rounded-full transition-colors">
+                            Insert Signature
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Advanced Options -->
+                <div class="grid md:grid-cols-3 gap-4">
+                    <div>
+                        <label for="ccColumn" class="block text-sm font-medium text-gray-300 mb-2">CC Column</label>
+                        <select id="ccColumn" class="w-full p-2.5 rounded-lg bg-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                            <option value="">None</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="bccColumn" class="block text-sm font-medium text-gray-300 mb-2">BCC Column</label>
+                        <select id="bccColumn" class="w-full p-2.5 rounded-lg bg-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                            <option value="">None</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="attachmentsColumn" class="block text-sm font-medium text-gray-300 mb-2">Attachments</label>
+                        <select id="attachmentsColumn" class="w-full p-2.5 rounded-lg bg-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                            <option value="">None</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Merge Option -->
+                <div class="flex items-center space-x-3 p-3 bg-gray-700 rounded-lg">
+                    <input type="checkbox" id="mergeEmails" class="h-4 w-4 rounded border-gray-600 bg-gray-800 text-teal-500 focus:ring-2 focus:ring-teal-500">
+                    <label for="mergeEmails" class="text-sm text-gray-300">
+                        <span class="font-semibold">Merge multiple rows per recipient</span>
+                        <span class="block text-xs text-gray-400 mt-1">Combine emails to the same recipient into one email with numbered sections</span>
+                    </label>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex gap-3">
+                    <button id="previewBtn" class="flex-1 py-3 px-6 bg-gray-700 text-white font-bold rounded-lg shadow-md hover:bg-gray-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 focus:ring-offset-gray-800">
+                        👁️ Preview First Email
+                    </button>
+                    <button id="generateBtn" class="flex-1 py-3 px-6 bg-blue-600 text-white font-bold rounded-lg shadow-md hover:bg-blue-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-gray-800">
+                        ✉️ Generate All Drafts
+                    </button>
+                </div>
+
+                <!-- Export Options -->
+                <div id="export-section" class="hidden flex gap-2">
+                    <button id="exportMailtoBtn" class="flex-1 text-xs py-2 px-4 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors">
+                        💾 Export as Links File
+                    </button>
+                    <button id="clearAllBtn" class="flex-1 text-xs py-2 px-4 bg-red-900 hover:bg-red-800 text-white rounded-lg transition-colors">
+                        🗑️ Clear All
+                    </button>
+                </div>
+            </div>
+
+            <!-- Status Message -->
+            <div id="statusMessage" class="mt-6 text-center text-sm font-semibold transition-opacity duration-300 opacity-0"></div>
+            
+            <!-- Email Links Container -->
+            <div id="emailLinksContainer" class="mt-8 space-y-3 pr-2 max-h-96 overflow-y-auto custom-scrollbar">
+            </div>
+
+            <!-- Preview Modal -->
+            <div id="previewModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                <div class="bg-gray-800 rounded-xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto custom-scrollbar">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-2xl font-bold text-teal-400">Email Preview</h2>
+                        <button id="closePreviewBtn" class="p-2 hover:bg-gray-700 rounded-lg transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="previewContent" class="space-y-4">
+                        <div>
+                            <label class="text-xs font-bold text-gray-400">TO:</label>
+                            <p id="previewTo" class="text-sm text-gray-200 bg-gray-700 p-2 rounded mt-1"></p>
+                        </div>
+                        <div id="previewCcSection" class="hidden">
+                            <label class="text-xs font-bold text-gray-400">CC:</label>
+                            <p id="previewCc" class="text-sm text-gray-200 bg-gray-700 p-2 rounded mt-1"></p>
+                        </div>
+                        <div id="previewBccSection" class="hidden">
+                            <label class="text-xs font-bold text-gray-400">BCC:</label>
+                            <p id="previewBcc" class="text-sm text-gray-200 bg-gray-700 p-2 rounded mt-1"></p>
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-gray-400">SUBJECT:</label>
+                            <p id="previewSubject" class="text-sm text-gray-200 bg-gray-700 p-2 rounded mt-1"></p>
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-gray-400">BODY:</label>
+                            <pre id="previewBody" class="text-sm text-gray-200 bg-gray-700 p-3 rounded mt-1 whitespace-pre-wrap font-sans"></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Element references
+            const csvFileEl = document.getElementById('csvFile');
+            const headersSectionEl = document.getElementById('headers-section');
+            const headerTagsEl = document.getElementById('headerTags');
+            const previewSectionEl = document.getElementById('preview-section');
+            const dataPreviewTableEl = document.getElementById('dataPreviewTable');
+            const previewTableHeadEl = document.getElementById('previewTableHead');
+            const previewTableBodyEl = document.getElementById('previewTableBody');
+            const rowCountEl = document.getElementById('rowCount');
+            const recipientColEl = document.getElementById('recipientColumn');
+            const nameColEl = document.getElementById('nameColumn');
+            const subjectTemplateEl = document.getElementById('subjectTemplate');
+            const bodyTemplateEl = document.getElementById('bodyTemplate');
+            const ccColEl = document.getElementById('ccColumn');
+            const bccColEl = document.getElementById('bccColumn');
+            const attachmentsColEl = document.getElementById('attachmentsColumn');
+            const mergeEmailsEl = document.getElementById('mergeEmails');
+            const generateBtn = document.getElementById('generateBtn');
+            const previewBtn = document.getElementById('previewBtn');
+            const statusMessageEl = document.getElementById('statusMessage');
+            const linksContainerEl = document.getElementById('emailLinksContainer');
+            const helpBtn = document.getElementById('helpBtn');
+            const helpModal = document.getElementById('helpModal');
+            const closeHelpBtn = document.getElementById('closeHelpBtn');
+            const previewModal = document.getElementById('previewModal');
+            const closePreviewBtn = document.getElementById('closePreviewBtn');
+            const insertGreetingBtn = document.getElementById('insertGreetingBtn');
+            const insertSignatureBtn = document.getElementById('insertSignatureBtn');
+            const filterSection = document.getElementById('filter-section');
+            const addFilterBtn = document.getElementById('addFilterBtn');
+            const filterContainer = document.getElementById('filterContainer');
+            const filterStats = document.getElementById('filterStats');
+            const exportSection = document.getElementById('export-section');
+            const exportMailtoBtn = document.getElementById('exportMailtoBtn');
+            const clearAllBtn = document.getElementById('clearAllBtn');
+
+            let csvData = null;
+            let csvDataHeaders = [];
+            let filters = [];
+            let generatedEmails = [];
+
+            const showStatus = (message, isError = false) => {
+                statusMessageEl.textContent = message;
+                statusMessageEl.className = `mt-6 text-center text-sm font-semibold transition-opacity duration-300 opacity-100 ${isError ? 'text-red-400' : 'text-green-400'}`;
+            };
+
+            // Help modal handlers
+            helpBtn.addEventListener('click', () => {
+                helpModal.classList.remove('hidden');
+            });
+
+            closeHelpBtn.addEventListener('click', () => {
+                helpModal.classList.add('hidden');
+            });
+
+            helpModal.addEventListener('click', (e) => {
+                if (e.target === helpModal) {
+                    helpModal.classList.add('hidden');
+                }
+            });
+
+            // Preview modal handlers
+            closePreviewBtn.addEventListener('click', () => {
+                previewModal.classList.add('hidden');
+            });
+
+            previewModal.addEventListener('click', (e) => {
+                if (e.target === previewModal) {
+                    previewModal.classList.add('hidden');
+                }
+            });
+
+            // File upload handler
+            csvFileEl.addEventListener('change', () => {
+                const file = csvFileEl.files[0];
+                if (!file) return;
+                
+                showStatus('Reading file...', false);
+                const fileName = file.name.toLowerCase();
+                
+                if (fileName.endsWith('.csv')) {
+                    parseCSV(file);
+                } else if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
+                    parseExcel(file);
+                } else {
+                    showStatus('Unsupported file format. Please upload CSV or Excel files.', true);
+                }
+            });
+
+            const parseCSV = (file) => {
+                Papa.parse(file, {
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: function(results) {
+                        handleParsedData(results.data, results.meta.fields, results.errors);
+                    },
+                    error: function(error) {
+                        console.error('CSV parsing error:', error);
+                        showStatus('Failed to parse CSV file. Please ensure it is a valid CSV format.', true);
+                    }
+                });
+            };
+
+            const parseExcel = (file) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const data = new Uint8Array(e.target.result);
+                        const workbook = XLSX.read(data, { type: 'array' });
+                        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                        const jsonData = XLSX.utils.sheet_to_json(firstSheet, { defval: '' });
+                        
+                        if (jsonData.length === 0) {
+                            showStatus('The Excel file contains no data rows.', true);
+                            return;
+                        }
+                        
+                        const headers = Object.keys(jsonData[0]);
+                        handleParsedData(jsonData, headers, []);
+                    } catch (error) {
+                        console.error('Excel parsing error:', error);
+                        showStatus('Failed to parse Excel file. Please ensure it is a valid format.', true);
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+            };
+
+            const handleParsedData = (data, headers, errors) => {
+                if (errors && errors.length > 0) {
+                    console.error('Parsing errors:', errors);
+                    showStatus('Warning: Some rows had parsing errors. Check console for details.', true);
+                }
+                
+                if (data.length === 0) {
+                    showStatus('The file contains no data rows.', true);
+                    return;
+                }
+                
+                csvData = data;
+                csvDataHeaders = headers;
+                
+                if (!csvDataHeaders || csvDataHeaders.length === 0) {
+                    showStatus('Could not find headers. Please ensure the first row contains column names.', true);
+                    return;
+                }
+
+                populateHeaderTags(csvDataHeaders);
+                populateDropdowns(csvDataHeaders);
+                showDataPreview(data, headers);
+                headersSectionEl.classList.remove('hidden');
+                previewSectionEl.classList.remove('hidden');
+                filterSection.classList.remove('hidden');
+                showStatus(`✅ Loaded ${data.length} rows with ${csvDataHeaders.length} columns`, false);
+            };
+
+            const showDataPreview = (data, headers) => {
+                // Show first 3 rows
+                const previewRows = data.slice(0, 3);
+                rowCountEl.textContent = `Showing 3 of ${data.length} rows`;
+                
+                // Create table header
+                let headerHTML = '<tr>';
+                headers.forEach(header => {
+                    headerHTML += `<th class="text-left px-2 py-1 text-gray-300 border-b border-gray-600">${header}</th>`;
+                });
+                headerHTML += '</tr>';
+                previewTableHeadEl.innerHTML = headerHTML;
+                
+                // Create table body
+                let bodyHTML = '';
+                previewRows.forEach(row => {
+                    bodyHTML += '<tr class="border-b border-gray-600">';
+                    headers.forEach(header => {
+                        const value = row[header] || '';
+                        const displayValue = value.length > 30 ? value.substring(0, 30) + '...' : value;
+                        bodyHTML += `<td class="px-2 py-1 text-gray-400">${displayValue}</td>`;
+                    });
+                    bodyHTML += '</tr>';
+                });
+                previewTableBodyEl.innerHTML = bodyHTML;
+            };
+
+            const populateHeaderTags = (headers) => {
+                headerTagsEl.innerHTML = '';
+                headers.forEach(header => {
+                    const tag = document.createElement('span');
+                    tag.textContent = `{{${header}}}`;
+                    tag.className = 'cursor-pointer bg-teal-600 hover:bg-teal-500 transition-colors duration-200 text-white text-xs font-semibold px-3 py-1 rounded-full';
+                    tag.onclick = () => {
+                        const placeholder = `{{${header}}}`;
+                        navigator.clipboard.writeText(placeholder).then(() => {
+                            showStatus(`✅ Copied '${placeholder}' to clipboard`, false);
+                        }).catch(err => {
+                            console.error('Failed to copy text: ', err);
+                            showStatus('Failed to copy. Please copy manually.', true);
+                        });
+                    };
+                    headerTagsEl.appendChild(tag);
+                });
+            };
+
+            const populateDropdowns = (headers) => {
+                const dropdowns = [
+                    { el: recipientColEl, includeNone: false },
+                    { el: nameColEl, includeNone: true },
+                    { el: ccColEl, includeNone: true },
+                    { el: bccColEl, includeNone: true },
+                    { el: attachmentsColEl, includeNone: true }
+                ];
+
+                dropdowns.forEach(({ el, includeNone }) => {
+                    el.innerHTML = includeNone ? '<option value="">None</option>' : '';
+                    headers.forEach(header => {
+                        const option = document.createElement('option');
+                        option.value = header;
+                        option.textContent = header;
+                        el.appendChild(option);
+                    });
+                });
+
+                // Auto-select email column if found
+                const emailHeaders = headers.filter(h => 
+                    h.toLowerCase().includes('email') || h.toLowerCase().includes('mail')
+                );
+                if (emailHeaders.length > 0) {
+                    recipientColEl.value = emailHeaders[0];
+                }
+
+                // Auto-select name column if found
+                const nameHeaders = headers.filter(h => 
+                    h.toLowerCase().includes('name') || h.toLowerCase() === 'first' || h.toLowerCase() === 'firstname'
+                );
+                if (nameHeaders.length > 0) {
+                    nameColEl.value = nameHeaders[0];
+                }
+            };
+
+            // Filter functionality
+            let filterIdCounter = 0;
+            
+            addFilterBtn.addEventListener('click', () => {
+                addFilter();
+            });
+
+            const addFilter = () => {
+                const filterId = filterIdCounter++;
+                const filterDiv = document.createElement('div');
+                filterDiv.className = 'flex gap-2 items-center bg-gray-800 p-2 rounded';
+                filterDiv.dataset.filterId = filterId;
+                
+                filterDiv.innerHTML = `
+                    <select class="filter-column flex-1 p-2 rounded bg-gray-600 text-gray-100 text-xs focus:outline-none focus:ring-2 focus:ring-teal-500">
+                        ${csvDataHeaders.map(h => `<option value="${h}">${h}</option>`).join('')}
+                    </select>
+                    <select class="filter-operator p-2 rounded bg-gray-600 text-gray-100 text-xs focus:outline-none focus:ring-2 focus:ring-teal-500">
+                        <option value="equals">Equals</option>
+                        <option value="contains">Contains</option>
+                        <option value="not_empty">Not Empty</option>
+                        <option value="empty">Empty</option>
+                    </select>
+                    <input type="text" class="filter-value flex-1 p-2 rounded bg-gray-600 text-gray-100 text-xs placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500" placeholder="Value">
+                    <button class="remove-filter p-2 bg-red-900 hover:bg-red-800 rounded text-white text-xs transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                `;
+                
+                filterContainer.appendChild(filterDiv);
+                
+                const removeBtn = filterDiv.querySelector('.remove-filter');
+                removeBtn.addEventListener('click', () => {
+                    filterDiv.remove();
+                    updateFilterStats();
+                });
+                
+                const operatorSelect = filterDiv.querySelector('.filter-operator');
+                const valueInput = filterDiv.querySelector('.filter-value');
+                
+                operatorSelect.addEventListener('change', () => {
+                    if (operatorSelect.value === 'not_empty' || operatorSelect.value === 'empty') {
+                        valueInput.disabled = true;
+                        valueInput.value = '';
+                    } else {
+                        valueInput.disabled = false;
+                    }
+                    updateFilterStats();
+                });
+                
+                filterDiv.querySelectorAll('select, input').forEach(el => {
+                    el.addEventListener('change', updateFilterStats);
+                    el.addEventListener('input', updateFilterStats);
+                });
+                
+                updateFilterStats();
+            };
+
+            const updateFilterStats = () => {
+                if (!csvData) return;
+                
+                const activeFilters = Array.from(filterContainer.querySelectorAll('[data-filter-id]'));
+                if (activeFilters.length === 0) {
+                    filterStats.classList.add('hidden');
+                    return;
+                }
+                
+                const filteredData = getFilteredData();
+                filterStats.textContent = `${filteredData.length} of ${csvData.length} rows match filters`;
+                filterStats.classList.remove('hidden');
+            };
+
+            const getFilteredData = () => {
+                if (!csvData) return [];
+                
+                const activeFilters = Array.from(filterContainer.querySelectorAll('[data-filter-id]'));
+                if (activeFilters.length === 0) return csvData;
+                
+                return csvData.filter(row => {
+                    return activeFilters.every(filterDiv => {
+                        const column = filterDiv.querySelector('.filter-column').value;
+                        const operator = filterDiv.querySelector('.filter-operator').value;
+                        const value = filterDiv.querySelector('.filter-value').value;
+                        const cellValue = (row[column] || '').toString().toLowerCase();
+                        
+                        switch (operator) {
+                            case 'equals':
+                                return cellValue === value.toLowerCase();
+                            case 'contains':
+                                return cellValue.includes(value.toLowerCase());
+                            case 'not_empty':
+                                return cellValue.trim() !== '';
+                            case 'empty':
+                                return cellValue.trim() === '';
+                            default:
+                                return true;
+                        }
+                    });
+                });
+            };
+
+            // Template helpers
+            insertGreetingBtn.addEventListener('click', () => {
+                const nameCol = nameColEl.value;
+                const greeting = nameCol 
+                    ? `Dear {{${nameCol}}},\n\n`
+                    : `Hello,\n\n`;
+                const cursorPos = bodyTemplateEl.selectionStart;
+                const textBefore = bodyTemplateEl.value.substring(0, cursorPos);
+                const textAfter = bodyTemplateEl.value.substring(cursorPos);
+                bodyTemplateEl.value = textBefore + greeting + textAfter;
+                bodyTemplateEl.focus();
+            });
+
+            insertSignatureBtn.addEventListener('click', () => {
+                const signature = `\n\nBest regards,\n[Your Name]`;
+                const cursorPos = bodyTemplateEl.selectionStart;
+                const textBefore = bodyTemplateEl.value.substring(0, cursorPos);
+                const textAfter = bodyTemplateEl.value.substring(cursorPos);
+                bodyTemplateEl.value = textBefore + signature + textAfter;
+                bodyTemplateEl.focus();
+            });
+
+            // Preview functionality
+            previewBtn.addEventListener('click', () => {
+                const recipientCol = recipientColEl.value;
+                const subjectTemplate = subjectTemplateEl.value;
+                const bodyTemplate = bodyTemplateEl.value;
+                const ccCol = ccColEl.value;
+                const bccCol = bccColEl.value;
+
+                if (!csvData || csvData.length === 0) {
+                    showStatus('Please upload a file first.', true);
+                    return;
+                }
+                if (!recipientCol) {
+                    showStatus('Please select a recipient column.', true);
+                    return;
+                }
+
+                const filteredData = getFilteredData();
+                if (filteredData.length === 0) {
+                    showStatus('No rows match your filters.', true);
+                    return;
+                }
+
+                const firstRow = filteredData[0];
+                const recipient = firstRow[recipientCol];
+                let finalSubject = subjectTemplate;
+                let finalBody = bodyTemplate;
+                let ccEmail = ccCol ? (firstRow[ccCol] || '') : '';
+                let bccEmail = bccCol ? (firstRow[bccCol] || '') : '';
+
+                csvDataHeaders.forEach(header => {
+                    const placeholder = `{{${header}}}`;
+                    const value = firstRow[header] || '';
+                    finalSubject = finalSubject.split(placeholder).join(value);
+                    finalBody = finalBody.split(placeholder).join(value);
+                });
+
+                document.getElementById('previewTo').textContent = recipient || '(No recipient)';
+                document.getElementById('previewSubject').textContent = finalSubject || '(No subject)';
+                document.getElementById('previewBody').textContent = finalBody || '(No body)';
+                
+                if (ccEmail) {
+                    document.getElementById('previewCcSection').classList.remove('hidden');
+                    document.getElementById('previewCc').textContent = ccEmail;
+                } else {
+                    document.getElementById('previewCcSection').classList.add('hidden');
+                }
+                
+                if (bccEmail) {
+                    document.getElementById('previewBccSection').classList.remove('hidden');
+                    document.getElementById('previewBcc').textContent = bccEmail;
+                } else {
+                    document.getElementById('previewBccSection').classList.add('hidden');
+                }
+
+                previewModal.classList.remove('hidden');
+            });
+
+            // Generate functionality
+            generateBtn.addEventListener('click', () => {
+                const recipientCol = recipientColEl.value;
+                const subjectTemplate = subjectTemplateEl.value;
+                const bodyTemplate = bodyTemplateEl.value;
+                const ccCol = ccColEl.value;
+                const bccCol = bccColEl.value;
+                const attachmentsCol = attachmentsColEl.value;
+                const shouldMerge = mergeEmailsEl.checked;
+
+                if (!csvData) {
+                    showStatus('Please upload a file first.', true);
+                    return;
+                }
+                if (!recipientCol) {
+                    showStatus('Please select a recipient column.', true);
+                    return;
+                }
+                
+                const filteredData = getFilteredData();
+                if (filteredData.length === 0) {
+                    showStatus('No rows match your filters.', true);
+                    return;
+                }
+
+                showStatus('Generating email drafts...', false);
+                linksContainerEl.innerHTML = '';
+                generatedEmails = [];
+
+                processAndGenerateEmails(filteredData, recipientCol, subjectTemplate, bodyTemplate, ccCol, bccCol, attachmentsCol, shouldMerge);
+                exportSection.classList.remove('hidden');
+            });
+
+            const processAndGenerateEmails = (data, recipientCol, subjectTemplate, bodyTemplate, ccCol, bccCol, attachmentsCol, shouldMerge) => {
+                if (shouldMerge) {
+                    // Group rows by recipient
+                    const recipientGroups = {};
+                    data.forEach(row => {
+                        const recipient = row[recipientCol];
+                        
+                        if (recipient && recipient.trim()) {
+                            if (!recipientGroups[recipient]) {
+                                recipientGroups[recipient] = [];
+                            }
+                            recipientGroups[recipient].push(row);
+                        }
+                    });
+
+                    let generatedCount = 0;
+                    for (const recipient in recipientGroups) {
+                        const rowsForRecipient = recipientGroups[recipient];
+                        let mergedBody = '';
+                        let allCCs = new Set();
+                        let allBCCs = new Set();
+                        let allAttachments = new Set();
+                        let firstSubject = '';
+                        let firstRowVariables = {}; 
+
+                        rowsForRecipient.forEach((row, idx) => {
+                            let finalSubject = subjectTemplate;
+                            let finalBody = bodyTemplate;
+                            
+                            const variables = {};
+                            csvDataHeaders.forEach(header => {
+                                const placeholder = `{{${header}}}`;
+                                const value = row[header] || '';
+                                finalSubject = finalSubject.split(placeholder).join(value);
+                                finalBody = finalBody.split(placeholder).join(value);
+                                variables[header] = value;
+                            });
+
+                            if (idx === 0) {
+                                firstSubject = finalSubject;
+                                firstRowVariables = variables;
+                            }
+
+                            mergedBody += `--- Entry ${idx + 1} ---\n${finalBody}\n\n`;
+                            
+                            if (ccCol && row[ccCol]) allCCs.add(row[ccCol]);
+                            if (bccCol && row[bccCol]) allBCCs.add(row[bccCol]);
+                            if (attachmentsCol && row[attachmentsCol]) allAttachments.add(row[attachmentsCol]);
+                        });
+
+                        const ccEmails = Array.from(allCCs).join(', ');
+                        const bccEmails = Array.from(allBCCs).join(', ');
+                        const attachments = Array.from(allAttachments).join(', ');
+                        
+                        createEmailOutputBlock(recipient, firstSubject, mergedBody, ccEmails, bccEmails, attachments, firstRowVariables, true, rowsForRecipient.length);
+                        generatedCount++;
+                    }
+
+                    showStatus(`✅ Generated ${generatedCount} merged email drafts from ${data.length} rows`, false);
+                } else {
+                    // One email per row
+                    let generatedCount = 0;
+                    data.forEach(row => {
+                        const recipient = row[recipientCol];
+
+                        if (recipient && recipient.trim()) {
+                            let finalSubject = subjectTemplate;
+                            let finalBody = bodyTemplate;
+                            let ccEmail = ccCol ? (row[ccCol] || '') : '';
+                            let bccEmail = bccCol ? (row[bccCol] || '') : '';
+                            let attachments = attachmentsCol ? (row[attachmentsCol] || '') : '';
+
+                            const variables = {};
+                            csvDataHeaders.forEach(header => {
+                                const placeholder = `{{${header}}}`;
+                                const value = row[header] || '';
+                                finalSubject = finalSubject.split(placeholder).join(value);
+                                finalBody = finalBody.split(placeholder).join(value);
+                                variables[header] = value;
+                            });
+                            
+                            createEmailOutputBlock(recipient, finalSubject, finalBody, ccEmail, bccEmail, attachments, variables, false, 1);
+                            generatedCount++;
+                        }
+                    });
+
+                    if (generatedCount > 0) {
+                        showStatus(`✅ Generated ${generatedCount} email drafts`, false);
+                    } else {
+                        showStatus('No valid rows found to generate emails.', true);
+                    }
+                }
+            };
+            
+            const createEmailOutputBlock = (recipient, subject, body, cc, bcc, attachments, variables, isMerged = false, rowCount = 1) => {
+                const encodedSubject = encodeURIComponent(subject || '');
+                const encodedBody = encodeURIComponent(body || '');
+                let mailtoHref = `mailto:${recipient}?subject=${encodedSubject}&body=${encodedBody}`;
+                
+                if (cc) mailtoHref += `&cc=${encodeURIComponent(cc)}`;
+                if (bcc) mailtoHref += `&bcc=${encodeURIComponent(bcc)}`;
+
+                generatedEmails.push({
+                    recipient,
+                    subject,
+                    body,
+                    cc,
+                    bcc,
+                    attachments,
+                    mailtoHref
+                });
+
+                const blockContainerEl = document.createElement('div');
+                blockContainerEl.className = "space-y-2";
+
+                const headerRow = document.createElement('div');
+                headerRow.className = "flex items-center gap-2";
+
+                const linkEl = document.createElement('a');
+                linkEl.href = mailtoHref;
+                linkEl.className = "flex-grow block bg-gray-700 hover:bg-gray-600 transition-colors duration-200 p-3 rounded-lg text-sm text-left shadow-sm";
+                
+                let linkContent = `<span class="font-bold text-teal-300">To:</span> ${recipient}`;
+                if (isMerged) linkContent += `<br><span class="font-bold text-amber-300">Merged:</span> ${rowCount} entries`;
+                if (cc) linkContent += `<br><span class="font-bold text-sky-300">CC:</span> ${cc}`;
+                if (bcc) linkContent += `<br><span class="font-bold text-purple-300">BCC:</span> ${bcc}`;
+                linkContent += `<br><span class="font-bold text-sky-300">Subject:</span> ${subject || '(No subject)'}`;
+                if (attachments) linkContent += `<br><span class="font-bold text-rose-300">📎 Remember to attach:</span> ${attachments}`;
+
+                linkEl.innerHTML = linkContent;
+
+                linkEl.addEventListener('click', () => {
+                    if (!linkEl.dataset.clicked) {
+                        linkEl.classList.remove('bg-gray-700', 'hover:bg-gray-600');
+                        linkEl.classList.add('bg-green-800', 'text-green-200');
+                        linkEl.innerHTML += ' <span class="text-green-300">✓ Opened</span>';
+                        linkEl.dataset.clicked = 'true';
+                    }
+                });
+
+                const copyButton = document.createElement('button');
+                copyButton.className = "shrink-0 p-3 bg-gray-700 hover:bg-gray-600 transition-colors duration-200 rounded-lg text-sm shadow-sm";
+                copyButton.title = "Copy mailto link";
+                copyButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M8 2a2 2 0 00-2 2v2H4a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-2h2a2 2 0 002-2V8a2 2 0 00-2-2h-2V4a2 2 0 00-2-2h-4z" />
+                </svg>`;
+                copyButton.onclick = () => {
+                    navigator.clipboard.writeText(mailtoHref).then(() => {
+                        showStatus('✅ Copied mailto link', false);
+                    }).catch(err => {
+                        console.error('Failed to copy:', err);
+                        showStatus('Failed to copy link', true);
+                    });
+                };
+                
+                const variablesToggleBtn = document.createElement('button');
+                variablesToggleBtn.className = "shrink-0 p-3 bg-gray-700 hover:bg-gray-600 transition-colors duration-200 rounded-lg text-sm shadow-sm";
+                variablesToggleBtn.title = "Show variables";
+                variablesToggleBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>`;
+                
+                const variablesContainer = document.createElement('div');
+                variablesContainer.className = "hidden pl-4 pr-2 pb-2 text-xs text-gray-400 overflow-x-auto bg-gray-750 rounded p-3 mt-2";
+                let varsHtml = `<p class="font-bold text-gray-300 mb-2">${isMerged ? 'Variables (first entry):' : 'Variables:'}</p>`;
+                for (const key in variables) {
+                    if (variables.hasOwnProperty(key)) {
+                        varsHtml += `<p class="mb-1"><span class="font-semibold text-gray-300">${key}:</span> ${variables[key]}</p>`;
+                    }
+                }
+                variablesContainer.innerHTML = varsHtml;
+
+                variablesToggleBtn.onclick = () => {
+                    variablesContainer.classList.toggle('hidden');
+                    variablesToggleBtn.querySelector('svg').classList.toggle('rotate-180');
+                };
+                
+                headerRow.appendChild(linkEl);
+                headerRow.appendChild(copyButton);
+                headerRow.appendChild(variablesToggleBtn);
+                
+                blockContainerEl.appendChild(headerRow);
+                blockContainerEl.appendChild(variablesContainer);
+
+                linksContainerEl.appendChild(blockContainerEl);
+            };
+
+            // Export functionality
+            exportMailtoBtn.addEventListener('click', () => {
+                if (generatedEmails.length === 0) {
+                    showStatus('No emails to export', true);
+                    return;
+                }
+
+                let content = 'Bulk Email Export\n';
+                content += '='.repeat(50) + '\n\n';
+                
+                generatedEmails.forEach((email, index) => {
+                    content += `Email ${index + 1}\n`;
+                    content += `-`.repeat(30) + '\n';
+                    content += `To: ${email.recipient}\n`;
+                    if (email.cc) content += `CC: ${email.cc}\n`;
+                    if (email.bcc) content += `BCC: ${email.bcc}\n`;
+                    content += `Subject: ${email.subject}\n`;
+                    if (email.attachments) content += `Attachments: ${email.attachments}\n`;
+                    content += `\nMailto Link:\n${email.mailtoHref}\n`;
+                    content += `\nBody:\n${email.body}\n`;
+                    content += '\n' + '='.repeat(50) + '\n\n';
+                });
+
+                const blob = new Blob([content], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `email-drafts-${new Date().toISOString().slice(0,10)}.txt`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                showStatus('✅ Exported emails to file', false);
+            });
+
+            clearAllBtn.addEventListener('click', () => {
+                if (confirm('Clear all generated emails? This cannot be undone.')) {
+                    linksContainerEl.innerHTML = '';
+                    generatedEmails = [];
+                    exportSection.classList.add('hidden');
+                    showStatus('Cleared all emails', false);
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>

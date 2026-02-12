@@ -1,0 +1,31 @@
+ID,First Name,Last Name,Email,Company,Department,Phone,Product,Status,Amount,Date,Priority,Region,Account Manager,Notes
+CUST-1000,Matthew,Jackson,matthew.jackson367@example.com,Premier Services,Engineering,+1-860-981-7489,Analytics Dashboard,On Hold,"$1,341",2024-02-21,High,Asia Pacific,Matthew Harris,Contract renewal due
+CUST-1001,Matthew,Rodriguez,matthew.rodriguez62@example.com,Nexus Corporation,Legal,+1-766-387-8779,Data Warehouse,Completed,"$8,932",2024-07-20,Medium,North America,Michael Thompson,Waiting for client response
+CUST-1002,Nancy,Perez,nancy.perez227@example.com,Digital Dynamics,Sales,+1-806-901-7230,Enterprise Suite Pro,Active,"$2,568",2024-05-31,High,North America,Sandra Clark,Contract renewal due
+CUST-1003,Linda,Martin,linda.martin566@example.com,Creative Solutions,IT,+1-809-164-9408,Marketing Automation,On Hold,"$5,664",2024-03-01,Low,North America,Joseph Anderson,Demo completed successfully
+CUST-1004,Elizabeth,Robinson,elizabeth.robinson843@example.com,Future Technologies,IT,+1-608-660-6395,Data Warehouse,In Progress,"$1,079",2024-03-31,High,Latin America,David Sanchez,Follow up next week
+CUST-1005,Karen,Martinez,karen.martinez280@example.com,Future Technologies,Finance,+1-450-540-5235,Data Warehouse,On Hold,"$5,063",2024-03-29,Low,North America,Barbara Miller,Initial consultation scheduled
+CUST-1006,Karen,Sanchez,karen.sanchez311@example.com,Quantum Systems,R&D,+1-915-482-9335,Marketing Automation,On Hold,"$6,606",2024-08-15,Medium,Asia Pacific,Nancy Brown,Waiting for client response
+CUST-1007,Christopher,Martinez,christopher.martinez298@example.com,Premier Services,Customer Success,+1-598-427-1085,Analytics Dashboard,On Hold,"$6,327",2024-09-24,High,Europe,Sandra Taylor,Requires immediate attention
+CUST-1008,Jessica,Miller,jessica.miller63@example.com,Digital Dynamics,R&D,+1-476-785-3941,Cloud Platform,Pending,"$9,087",2024-01-22,Low,Latin America,David Gonzalez,Demo completed successfully
+CUST-1009,Jennifer,Smith,jennifer.smith563@example.com,Infinity Technologies,Legal,+1-809-348-4563,Cloud Platform,In Progress,$422,2024-08-14,High,Europe,Christopher Moore,Follow up next week
+CUST-1010,Matthew,Smith,matthew.smith561@example.com,Summit Solutions,Product,+1-691-881-6587,Data Warehouse,Pending,"$2,685",2024-01-25,Medium,Latin America,Matthew Thomas,Requires immediate attention
+CUST-1011,Lisa,Johnson,lisa.johnson603@example.com,Momentum Solutions,Marketing,+1-552-890-5924,Marketing Automation,In Progress,"$1,452",2024-03-06,High,Europe,Richard Moore,Requires immediate attention
+CUST-1012,Linda,Lopez,linda.lopez731@example.com,Vanguard Systems,R&D,+1-696-226-3845,Cloud Platform,Pending,"$7,316",2024-10-09,Medium,Asia Pacific,Richard Hernandez,Demo completed successfully
+CUST-1013,Daniel,Martin,daniel.martin734@example.com,Vertex Technologies,Legal,+1-937-780-6529,Data Warehouse,Completed,"$9,937",2024-01-04,Low,North America,Michael Johnson,Requires immediate attention
+CUST-1014,Linda,Gonzalez,linda.gonzalez467@example.com,Infinity Technologies,IT,+1-699-647-7191,API Gateway,Pending,"$2,075",2024-11-29,Medium,North America,Margaret Miller,Waiting for client response
+CUST-1015,James,Jackson,james.jackson820@example.com,Ember Technologies,Operations,+1-832-458-8943,Enterprise Suite Pro,Pending,"$8,685",2024-05-07,High,North America,Betty Robinson,Demo completed successfully
+CUST-1016,Anthony,Thomas,anthony.thomas648@example.com,Pinnacle Industries,R&D,+1-955-903-4006,Data Warehouse,Pending,"$7,259",2024-07-13,Medium,North America,Betty Clark,Waiting for client response
+CUST-1017,Christopher,Garcia,christopher.garcia571@example.com,Synergy Group,Finance,+1-325-949-9601,API Gateway,Completed,"$3,308",2024-05-08,High,North America,Linda Brown,Requires immediate attention
+CUST-1018,Lisa,Davis,lisa.davis951@example.com,Vanguard Systems,Sales,+1-694-103-3111,Enterprise Suite Pro,Completed,"$9,771",2024-02-19,Medium,Europe,Michael Sanchez,Waiting for client response
+CUST-1019,Richard,Clark,richard.clark668@example.com,Atlas Industries,IT,+1-660-214-3228,Security Module,Pending,"$6,636",2024-06-27,High,Latin America,Jessica Taylor,Follow up next week
+CUST-1020,Jessica,Johnson,jessica.johnson543@example.com,Vanguard Systems,Finance,+1-708-437-5761,Enterprise Suite Pro,Active,$601,2024-10-25,Low,Asia Pacific,James Lee,Contract renewal due
+CUST-1021,Margaret,Harris,margaret.harris409@example.com,Horizon Enterprises,IT,+1-695-393-2503,API Gateway,Active,"$5,203",2024-07-07,Low,North America,Elizabeth Lopez,Initial consultation scheduled
+CUST-1022,Karen,Williams,karen.williams38@example.com,Premier Services,Engineering,+1-817-408-1410,CRM System,Cancelled,$513,2024-12-13,Medium,Latin America,Margaret Davis,Demo completed successfully
+CUST-1023,Charles,Clark,charles.clark179@example.com,Innovative Systems,Engineering,+1-333-271-4108,API Gateway,Pending,$468,2024-10-23,High,North America,Thomas Martin,Demo completed successfully
+CUST-1024,Jennifer,Williams,jennifer.williams232@example.com,Synergy Group,Customer Success,+1-244-681-4008,Data Warehouse,Active,$100,2024-04-07,Low,Latin America,Sandra Thomas,Waiting for client response
+CUST-1025,Barbara,Brown,barbara.brown755@example.com,Synergy Group,IT,+1-227-332-8116,API Gateway,Pending,"$8,120",2024-02-29,Low,Asia Pacific,Sarah Jackson,Follow up next week
+CUST-1026,Nancy,Davis,nancy.davis260@example.com,Synergy Group,Operations,+1-550-519-7043,Enterprise Suite Pro,In Progress,"$6,938",2024-09-12,High,Latin America,James Smith,Waiting for client response
+CUST-1027,Michael,Sanchez,michael.sanchez460@example.com,Summit Solutions,Customer Success,+1-346-376-3183,API Gateway,Cancelled,"$4,723",2024-11-14,High,Asia Pacific,Christopher Brown,Contract renewal due
+CUST-1028,Anthony,White,anthony.white270@example.com,TechCorp Solutions,Sales,+1-386-833-7129,Enterprise Suite Pro,Active,"$7,197",2024-12-16,Medium,Latin America,Richard Jones,Contract renewal due
+CUST-1029,Sandra,Robinson,sandra.robinson264@example.com,Zenith Group,Business Development,+1-776-236-4509,API Gateway,Cancelled,"$4,968",2024-05-21,Medium,Europe,Elizabeth Ramirez,Requires immediate attention
