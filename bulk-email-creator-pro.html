@@ -798,6 +798,15 @@
                                             </p>
                                         </div>
 
+                                        <!-- Columns to display in list mode -->
+                                        <div id="mergeColumnsSection" class="hidden">
+                                            <label class="block text-xs font-medium text-gray-300 mb-2">Columns to display in list:</label>
+                                            <div id="mergeColumnsContainer" class="bg-gray-600 rounded p-3 max-h-32 overflow-y-auto custom-scrollbar">
+                                                <p class="text-xs text-gray-500 italic">Upload a file and select "once" mode to choose columns</p>
+                                            </div>
+                                            <p class="text-xs text-gray-500 mt-1">Select which columns to show in the data list</p>
+                                        </div>
+
                                         <!-- Spacing between entries -->
                                         <div>
                                             <label class="block text-xs font-medium text-gray-300 mb-2">Spacing between entries:</label>
@@ -1012,6 +1021,9 @@
             const addMergeSummaryEl = document.getElementById('addMergeSummary');
             const mergeSpacingEl = document.getElementById('mergeSpacing');
             const mergeDisplayModeEl = document.getElementById('mergeDisplayMode');
+            const mergeColumnsSection = document.getElementById('mergeColumnsSection');
+            const mergeColumnsContainer = document.getElementById('mergeColumnsContainer');
+            let selectedMergeColumns = []; // Track which columns to show in merge list
             const generateBtn = document.getElementById('generateBtn');
             const generateSpinner = document.getElementById('generateSpinner');
             const previewBtn = document.getElementById('previewBtn');
@@ -1214,6 +1226,15 @@
                 });
             });
 
+            // Merge display mode change handler
+            mergeDisplayModeEl.addEventListener('change', (e) => {
+                if (e.target.value === 'once') {
+                    mergeColumnsSection.classList.remove('hidden');
+                } else {
+                    mergeColumnsSection.classList.add('hidden');
+                }
+            });
+
             // Variable detection and display
             const extractVariables = (text) => {
                 const regex = /\{\{([^}]+)\}\}/g;
@@ -1289,6 +1310,7 @@
                     addMergeSummary: addMergeSummaryEl.checked,
                     mergeSpacing: mergeSpacingEl.value,
                     mergeDisplayMode: mergeDisplayModeEl.value,
+                    selectedMergeColumns: [...selectedMergeColumns],
                     timestamp: new Date().toISOString()
                 };
 
@@ -1369,6 +1391,21 @@
                     if (template.addMergeSummary !== undefined) addMergeSummaryEl.checked = template.addMergeSummary;
                     if (template.mergeSpacing) mergeSpacingEl.value = template.mergeSpacing;
                     if (template.mergeDisplayMode) mergeDisplayModeEl.value = template.mergeDisplayMode;
+                    
+                    // Restore selected merge columns
+                    if (template.selectedMergeColumns) {
+                        selectedMergeColumns = [...template.selectedMergeColumns];
+                        // Update checkboxes
+                        const checkboxes = mergeColumnsContainer.querySelectorAll('input[type="checkbox"]');
+                        checkboxes.forEach(cb => {
+                            cb.checked = selectedMergeColumns.includes(cb.value);
+                        });
+                    }
+                    
+                    // Show/hide column section based on display mode
+                    if (template.mergeDisplayMode === 'once') {
+                        mergeColumnsSection.classList.remove('hidden');
+                    }
                 } else if (mergeMode === 'multiRecipient') {
                     mergeMultiRecipientEl.checked = true;
                     multiRecipientOptions.classList.remove('hidden');
@@ -1621,6 +1658,41 @@
                         });
                     };
                     headerTagsEl.appendChild(tag);
+                });
+                
+                // Also populate merge columns checkboxes
+                populateMergeColumns(headers);
+            };
+
+            const populateMergeColumns = (headers) => {
+                mergeColumnsContainer.innerHTML = '';
+                selectedMergeColumns = [...headers]; // Select all by default
+                
+                headers.forEach(header => {
+                    const label = document.createElement('label');
+                    label.className = 'flex items-center space-x-2 text-xs text-gray-300 cursor-pointer hover:bg-gray-700 p-1 rounded';
+                    
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.checked = true;
+                    checkbox.value = header;
+                    checkbox.className = 'h-3 w-3 rounded border-gray-500 bg-gray-700 text-teal-500 focus:ring-1 focus:ring-teal-500';
+                    checkbox.onchange = (e) => {
+                        if (e.target.checked) {
+                            if (!selectedMergeColumns.includes(header)) {
+                                selectedMergeColumns.push(header);
+                            }
+                        } else {
+                            selectedMergeColumns = selectedMergeColumns.filter(h => h !== header);
+                        }
+                    };
+                    
+                    const span = document.createElement('span');
+                    span.textContent = header;
+                    
+                    label.appendChild(checkbox);
+                    label.appendChild(span);
+                    mergeColumnsContainer.appendChild(label);
                 });
             };
 
@@ -1968,9 +2040,9 @@
                                     }
                                 }
 
-                                // Build a line with the key data from this row
+                                // Build a line with ONLY the selected columns from this row
                                 const rowData = [];
-                                csvDataHeaders.forEach(header => {
+                                selectedMergeColumns.forEach(header => {
                                     const value = row[header] || '';
                                     if (value) {
                                         rowData.push(`${header}: ${value}`);
