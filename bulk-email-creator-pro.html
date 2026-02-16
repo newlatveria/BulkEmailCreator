@@ -9,10 +9,44 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        
+        /* Comprehensive overflow prevention */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+        
+        html {
+            overflow-x: hidden;
+            max-width: 100vw;
+            width: 100%;
+        }
+        
         body {
             font-family: 'Inter', sans-serif;
             overflow-x: hidden;
             max-width: 100vw;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        
+        /* Prevent any element from causing horizontal scroll */
+        * {
+            max-width: 100%;
+        }
+        
+        img,
+        svg,
+        video,
+        canvas,
+        audio,
+        iframe,
+        embed,
+        object {
+            max-width: 100%;
+            height: auto;
         }
         .rotate-180 {
             transform: rotate(180deg);
@@ -99,29 +133,72 @@
         /* Desktop grid layout - Enhanced for accessibility */
         .desktop-grid {
             display: grid;
-            grid-template-columns: 1fr 400px;
-            gap: 2rem;
+            grid-template-columns: minmax(0, 1fr) minmax(300px, 400px);
+            gap: 1.5rem;
             align-items: start;
             max-width: 100%;
-            overflow: hidden;
+            width: 100%;
         }
         
         @media (max-width: 1400px) {
             .desktop-grid {
-                grid-template-columns: 1fr 350px;
+                grid-template-columns: minmax(0, 1fr) minmax(280px, 350px);
+                gap: 1rem;
             }
         }
         
         @media (max-width: 1280px) {
             .desktop-grid {
                 grid-template-columns: 1fr;
+                gap: 1rem;
             }
         }
 
         @media (max-width: 768px) {
             .desktop-grid {
-                gap: 1rem;
+                gap: 0.75rem;
             }
+            
+            /* Force all cards to full width on mobile */
+            .bg-gray-800 {
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+            
+            /* Reduce padding on mobile to prevent overflow */
+            .p-6 {
+                padding: 1rem !important;
+            }
+            
+            /* Make text smaller on mobile */
+            .text-4xl {
+                font-size: 1.5rem !important;
+            }
+            
+            .text-xl {
+                font-size: 1.125rem !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 0.5rem !important;
+            }
+            
+            .desktop-grid {
+                gap: 0.5rem;
+            }
+            
+            .rounded-xl {
+                border-radius: 0.5rem;
+            }
+        }
+
+        /* Ensure grid children don't overflow */
+        .desktop-grid > * {
+            min-width: 0;
+            max-width: 100%;
+            overflow-x: hidden;
         }
 
         /* Sticky sidebar for better UX */
@@ -130,6 +207,8 @@
             top: 1.5rem;
             max-height: calc(100vh - 3rem);
             overflow-y: auto;
+            max-width: 100%;
+            min-width: 0;
         }
 
         /* Improved focus states for accessibility */
@@ -142,15 +221,22 @@
         }
 
         /* Prevent overflow in all containers */
-        .space-y-6 > * {
+        .space-y-6 > *,
+        .space-y-4 > * {
             max-width: 100%;
             overflow-x: hidden;
+            min-width: 0;
         }
 
         /* Ensure all cards don't overflow */
         .bg-gray-800 {
             max-width: 100%;
             overflow-x: hidden;
+            width: 100%;
+        }
+
+        .rounded-xl {
+            max-width: 100%;
         }
 
         /* Table container constraints */
@@ -189,6 +275,37 @@
         /* Variable tags responsive */
         #headerTags {
             max-width: 100%;
+        }
+
+        /* Ensure form inputs don't cause overflow */
+        input[type="text"],
+        input[type="email"],
+        textarea,
+        select {
+            max-width: 100%;
+            width: 100%;
+        }
+
+        /* Grid layouts should respect container width */
+        .grid {
+            width: 100%;
+            max-width: 100%;
+        }
+
+        /* Flex containers should wrap and not overflow */
+        .flex {
+            max-width: 100%;
+        }
+
+        .flex-grow,
+        .flex-1 {
+            min-width: 0;
+        }
+
+        /* Specific fix for file input */
+        input[type="file"] {
+            max-width: 100%;
+            overflow: hidden;
         }
 
         /* Skip to content link for screen readers */
@@ -446,9 +563,9 @@
         </div>
     </div>
 
-    <div class="max-w-[1600px] mx-auto px-1 sm:px-2 md:px-4 overflow-x-hidden w-full">
+    <div class="max-w-[1600px] mx-auto px-2 sm:px-4 w-full" style="max-width: min(1600px, 100vw);">
         <!-- Header -->
-        <div class="bg-gray-800 rounded-xl shadow-2xl p-4 md:p-6 mb-6">
+        <div class="bg-gray-800 rounded-xl shadow-2xl p-4 md:p-6 mb-4 md:mb-6 w-full">
             <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div class="min-w-0 flex-1">
                     <h1 class="text-2xl sm:text-3xl md:text-4xl font-extrabold text-teal-400 truncate">Bulk Email Creator Pro</h1>
@@ -530,12 +647,12 @@
                     </div>
                     
                     <div class="space-y-4">
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
+                            <div class="min-w-0">
                                 <label for="recipientColumn" class="block text-sm font-medium text-gray-300 mb-2">Recipient Column *</label>
                                 <select id="recipientColumn" class="w-full p-2.5 rounded-lg bg-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-500"></select>
                             </div>
-                            <div>
+                            <div class="min-w-0">
                                 <label for="nameColumn" class="block text-sm font-medium text-gray-300 mb-2">Name Column</label>
                                 <select id="nameColumn" class="w-full p-2.5 rounded-lg bg-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-500">
                                     <option value="">None</option>
