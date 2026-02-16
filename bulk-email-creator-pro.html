@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bulk Email Creator Pro</title>
+    <title>Bulk Email Creator Pro - Enhanced Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -11,6 +11,7 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
         body {
             font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
         }
         .rotate-180 {
             transform: rotate(180deg);
@@ -34,241 +35,608 @@
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
             background: #9ca3af;
         }
+        
+        /* Custom gray-750 color */
+        .bg-gray-750 {
+            background-color: #2d3748;
+        }
+        
+        /* Draggable help panel styles */
+        .help-panel {
+            position: fixed;
+            width: 400px;
+            max-height: 80vh;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            resize: both;
+            overflow: auto;
+            min-width: 300px;
+            min-height: 200px;
+            max-width: 90vw;
+        }
+        
+        .help-panel-header {
+            cursor: move;
+            user-select: none;
+        }
+        
+        /* Multi-select chips */
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            background: #14b8a6;
+            color: white;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            margin: 2px;
+        }
+        
+        .chip button {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: none;
+            color: white;
+            font-size: 12px;
+            line-height: 1;
+        }
+        
+        .chip button:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+        
+        .chip.invalid {
+            background: #dc2626;
+        }
+        
+        /* Desktop grid layout */
+        .desktop-grid {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 1.5rem;
+        }
+        
+        @media (max-width: 1280px) {
+            .desktop-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Variable usage panel */
+        .variable-badge {
+            display: inline-block;
+            background: #1e293b;
+            color: #94a3b8;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            margin: 2px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .variable-badge.used {
+            background: #14532d;
+            color: #86efac;
+        }
+
+        /* Progress bar */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #14b8a6, #06b6d4);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s ease;
+            z-index: 9999;
+        }
+
+        /* Toast notifications */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+            z-index: 9999;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toast.success {
+            background: #059669;
+        }
+
+        .toast.error {
+            background: #dc2626;
+        }
+
+        .toast.info {
+            background: #3b82f6;
+        }
+
+        /* Email validation */
+        .email-invalid {
+            border: 2px solid #dc2626 !important;
+        }
+
+        .email-valid {
+            border: 2px solid #059669 !important;
+        }
+
+        /* Loading spinner */
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #14b8a6;
+            width: 20px;
+            height: 20px;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Template card */
+        .template-card {
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .template-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        /* Keyboard shortcut indicator */
+        .kbd {
+            display: inline-block;
+            padding: 2px 6px;
+            font-size: 11px;
+            font-family: monospace;
+            background: #374151;
+            border: 1px solid #4b5563;
+            border-radius: 3px;
+            margin-left: 8px;
+            color: #9ca3af;
+        }
     </style>
 </head>
-<body class="bg-slate-900 text-gray-100 antialiased leading-relaxed">
+<body class="bg-slate-900 text-gray-100 antialiased leading-relaxed p-6">
 
-    <div class="flex items-center justify-center min-h-screen p-4">
-        <div class="bg-gray-800 text-gray-200 p-8 rounded-xl shadow-2xl w-full max-w-3xl transform transition-all duration-500 ease-in-out hover:scale-[1.01]">
-            <div class="flex items-center justify-between mb-2">
-                <h1 class="text-4xl font-extrabold text-teal-400">Bulk Email Creator Pro</h1>
-                <button id="helpBtn" class="p-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    <!-- Progress Bar -->
+    <div id="progressBar" class="progress-bar"></div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer"></div>
+
+    <!-- Draggable Help Panel -->
+    <div id="helpPanel" class="help-panel hidden bg-gray-800 rounded-xl z-50 border border-gray-700">
+        <div id="helpPanelHeader" class="help-panel-header bg-gray-900 rounded-t-xl p-4 border-b border-gray-700 flex justify-between items-center">
+            <h2 class="text-xl font-bold text-teal-400">📖 Help & Guide</h2>
+            <button id="closeHelpPanel" class="p-1 hover:bg-gray-700 rounded transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+        <div class="p-6 overflow-y-auto custom-scrollbar" style="max-height: calc(80vh - 60px);">
+            <div class="space-y-4 text-sm text-gray-300">
+                <div>
+                    <h3 class="font-bold text-teal-300 mb-2">⌨️ Keyboard Shortcuts</h3>
+                    <ul class="text-xs space-y-1">
+                        <li><kbd class="kbd">Ctrl/Cmd + G</kbd> - Generate emails</li>
+                        <li><kbd class="kbd">Ctrl/Cmd + P</kbd> - Preview first email</li>
+                        <li><kbd class="kbd">Ctrl/Cmd + S</kbd> - Save template</li>
+                        <li><kbd class="kbd">Ctrl/Cmd + Z</kbd> - Undo last clear</li>
+                        <li><kbd class="kbd">?</kbd> - Toggle help panel</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-bold text-teal-300 mb-2">📁 File Format</h3>
+                    <p>Upload a CSV or Excel file (.xlsx, .xls) with headers in the first row and data in subsequent rows.</p>
+                </div>
+                <div>
+                    <h3 class="font-bold text-teal-300 mb-2">🏷️ Using Variables</h3>
+                    <p>Click any header tag to copy it, then paste into your subject or body. Example: <code class="bg-gray-700 px-1 rounded">{{Name}}</code> will be replaced with each person's name.</p>
+                    <p class="mt-2 text-xs text-gray-400">Check the "Variables Used" panel to see which variables are in your template.</p>
+                </div>
+                <div>
+                    <h3 class="font-bold text-teal-300 mb-2">✅ Email Validation</h3>
+                    <p>Email addresses are validated in real-time. Invalid emails will be highlighted in red.</p>
+                </div>
+                <div>
+                    <h3 class="font-bold text-teal-300 mb-2">📧 CC & BCC Options</h3>
+                    <p>You have two ways to add CC/BCC recipients:</p>
+                    <ul class="list-disc list-inside mt-2 text-xs space-y-1">
+                        <li><strong>From Spreadsheet:</strong> Select a column that contains CC/BCC emails (different per row)</li>
+                        <li><strong>Manual Entry:</strong> Type emails to add to ALL generated emails</li>
+                        <li>Both can be used together - they will be combined</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-bold text-teal-300 mb-2">💾 Templates</h3>
+                    <p>Save your email templates for reuse. Templates include subject, body, and settings.</p>
+                </div>
+                <div>
+                    <h3 class="font-bold text-teal-300 mb-2">🔄 Merge Feature</h3>
+                    <p>Enable "Merge emails" to combine multiple rows with the same recipient into one email with numbered sections.</p>
+                </div>
+                <div>
+                    <h3 class="font-bold text-teal-300 mb-2">📧 Sending Emails</h3>
+                    <p>Click any generated link to open a draft in your default email client. The link contains all recipients, subject, and body text.</p>
+                </div>
+                <div>
+                    <h3 class="font-bold text-teal-300 mb-2">💡 Pro Tips</h3>
+                    <ul class="list-disc list-inside space-y-1 text-xs">
+                        <li>Drag this help panel anywhere on screen</li>
+                        <li>Resize the panel from the bottom-right corner</li>
+                        <li>Use Ctrl+Z to undo clearing emails</li>
+                        <li>Export to CSV or TXT format</li>
+                        <li>Save templates for commonly used email formats</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Template Selector Modal -->
+    <div id="templateModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="bg-gray-800 rounded-xl p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold text-teal-400">📝 Saved Templates</h2>
+                <button id="closeTemplateModal" class="p-2 hover:bg-gray-700 rounded-lg transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
             </div>
-            <p class="text-sm text-gray-400 mb-6">Generate multiple email drafts from CSV or Excel files with advanced features.</p>
-            
-            <!-- Help Modal -->
-            <div id="helpModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                <div class="bg-gray-800 rounded-xl p-6 max-w-2xl max-h-[90vh] overflow-y-auto custom-scrollbar">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-2xl font-bold text-teal-400">How to Use</h2>
-                        <button id="closeHelpBtn" class="p-2 hover:bg-gray-700 rounded-lg transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </button>
-                    </div>
-                    <div class="space-y-4 text-sm text-gray-300">
-                        <div>
-                            <h3 class="font-bold text-teal-300 mb-2">📁 File Format</h3>
-                            <p>Upload a CSV or Excel file (.xlsx, .xls) with headers in the first row and data in subsequent rows.</p>
-                        </div>
-                        <div>
-                            <h3 class="font-bold text-teal-300 mb-2">🏷️ Using Variables</h3>
-                            <p>Click any header tag to copy it, then paste into your subject or body. Example: <code class="bg-gray-700 px-1 rounded">{{Name}}</code> will be replaced with each person's name.</p>
-                        </div>
-                        <div>
-                            <h3 class="font-bold text-teal-300 mb-2">🔄 Merge Feature</h3>
-                            <p>Enable "Merge emails" to combine multiple rows with the same recipient into one email with numbered sections.</p>
-                        </div>
-                        <div>
-                            <h3 class="font-bold text-teal-300 mb-2">📧 Sending Emails</h3>
-                            <p>Click any generated link to open a draft in your default email client. The link contains all recipients, subject, and body text.</p>
-                        </div>
-                        <div>
-                            <h3 class="font-bold text-teal-300 mb-2">💾 Preview Feature</h3>
-                            <p>Use the preview button to see how your first email will look before generating all drafts.</p>
-                        </div>
-                        <div>
-                            <h3 class="font-bold text-teal-300 mb-2">📎 Attachments</h3>
-                            <p>Attachment columns show reminders but cannot auto-attach files. You'll need to attach files manually when composing.</p>
-                        </div>
-                        <div>
-                            <h3 class="font-bold text-teal-300 mb-2">🔍 Filtering</h3>
-                            <p>Use the filter feature to only generate emails for specific rows based on column values.</p>
-                        </div>
-                    </div>
+            <div id="templateList" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Templates will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-[1600px] mx-auto">
+        <!-- Header -->
+        <div class="bg-gray-800 rounded-xl shadow-2xl p-6 mb-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-4xl font-extrabold text-teal-400">Bulk Email Creator Pro</h1>
+                    <p class="text-sm text-gray-400 mt-1">Enhanced Edition - Generate personalized email drafts with advanced features</p>
+                </div>
+                <div class="flex gap-2">
+                    <button id="undoBtn" class="p-3 bg-amber-600 hover:bg-amber-500 rounded-lg transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed" disabled title="Undo last clear (Ctrl+Z)">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                        </svg>
+                    </button>
+                    <button id="helpBtn" class="p-3 bg-teal-600 hover:bg-teal-500 rounded-lg transition-colors shadow-lg" title="Help (Press ?)">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </button>
                 </div>
             </div>
-            
+        </div>
+
+        <!-- Main Desktop Grid Layout -->
+        <div class="desktop-grid">
+            <!-- Left Column - Main Content -->
             <div class="space-y-6">
-                <!-- File Upload Section -->
-                <div>
-                    <label for="csvFile" class="block text-sm font-medium text-gray-300 mb-2">1. Upload your file</label>
-                    <div class="flex gap-2 items-center">
-                        <input type="file" id="csvFile" accept=".csv,.xlsx,.xls" class="flex-grow text-sm text-gray-400
-                            file:mr-4 file:py-2 file:px-4
-                            file:rounded-full file:border-0
-                            file:text-sm file:font-semibold
-                            file:bg-teal-500 file:text-white
-                            hover:file:bg-teal-600 transition-colors duration-200 cursor-pointer">
-                        <span class="text-xs text-gray-500">CSV, XLSX, XLS</span>
-                    </div>
-                </div>
-
-                <!-- Data Preview Section -->
-                <div id="preview-section" class="hidden">
-                    <div class="flex items-center justify-between mb-2">
-                        <label class="block text-sm font-medium text-gray-300">📊 Data Preview</label>
-                        <span id="rowCount" class="text-xs text-gray-400"></span>
-                    </div>
-                    <div class="bg-gray-700 rounded-lg p-3 overflow-x-auto custom-scrollbar max-h-48">
-                        <table id="dataPreviewTable" class="text-xs w-full">
-                            <thead id="previewTableHead"></thead>
-                            <tbody id="previewTableBody"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Headers Section -->
-                <div id="headers-section" class="hidden">
-                    <label class="block text-sm font-medium text-gray-300 mb-2">2. Available Headers (Click to copy)</label>
-                    <div id="headerTags" class="flex flex-wrap gap-2 mb-4 p-3 bg-gray-700 rounded-lg max-h-32 overflow-y-auto custom-scrollbar">
-                    </div>
-                </div>
-
-                <!-- Filter Section -->
-                <div id="filter-section" class="hidden">
-                    <div class="bg-gray-700 rounded-lg p-4">
-                        <div class="flex items-center justify-between mb-3">
-                            <label class="text-sm font-medium text-gray-300">🔍 Filter Data (Optional)</label>
-                            <button id="addFilterBtn" class="text-xs bg-teal-600 hover:bg-teal-500 text-white px-3 py-1 rounded-full transition-colors">
-                                + Add Filter
-                            </button>
+                <!-- File Upload Card -->
+                <div class="bg-gray-800 rounded-xl shadow-xl p-6">
+                    <h2 class="text-xl font-bold text-teal-300 mb-4">📁 Data Source</h2>
+                    <div>
+                        <label for="csvFile" class="block text-sm font-medium text-gray-300 mb-2">Upload your file</label>
+                        <div class="flex gap-2 items-center">
+                            <input type="file" id="csvFile" accept=".csv,.xlsx,.xls" class="flex-grow text-sm text-gray-400
+                                file:mr-4 file:py-2.5 file:px-6
+                                file:rounded-lg file:border-0
+                                file:text-sm file:font-semibold
+                                file:bg-teal-500 file:text-white
+                                hover:file:bg-teal-600 transition-colors duration-200 cursor-pointer">
+                            <span class="text-xs text-gray-500 font-mono">CSV, XLSX, XLS</span>
                         </div>
-                        <div id="filterContainer" class="space-y-2">
+                    </div>
+
+                    <!-- Data Preview Section -->
+                    <div id="preview-section" class="hidden mt-6">
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="block text-sm font-medium text-gray-300">📊 Data Preview</label>
+                            <span id="rowCount" class="text-xs text-gray-400"></span>
                         </div>
-                        <div id="filterStats" class="mt-3 text-xs text-gray-400 hidden"></div>
+                        <div class="bg-gray-700 rounded-lg p-3 overflow-x-auto custom-scrollbar max-h-48">
+                            <table id="dataPreviewTable" class="text-xs w-full">
+                                <thead id="previewTableHead"></thead>
+                                <tbody id="previewTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Available Headers -->
+                <div id="headers-section" class="hidden bg-gray-800 rounded-xl shadow-xl p-6">
+                    <h2 class="text-xl font-bold text-teal-300 mb-4">🏷️ Available Variables</h2>
+                    <p class="text-xs text-gray-400 mb-3">Click any variable to copy it to your clipboard</p>
+                    <div id="headerTags" class="flex flex-wrap gap-2 p-4 bg-gray-700 rounded-lg max-h-40 overflow-y-auto custom-scrollbar">
                     </div>
                 </div>
 
                 <!-- Email Configuration -->
-                <div class="grid md:grid-cols-2 gap-4">
-                    <div>
-                        <label for="recipientColumn" class="block text-sm font-medium text-gray-300 mb-2">3. Recipient Column *</label>
-                        <select id="recipientColumn" class="w-full p-2.5 rounded-lg bg-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-500"></select>
+                <div class="bg-gray-800 rounded-xl shadow-xl p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-bold text-teal-300">⚙️ Email Configuration</h2>
+                        <div class="flex gap-2">
+                            <button id="loadTemplateBtn" class="text-sm bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg transition-colors font-semibold">
+                                📂 Load Template
+                            </button>
+                            <button id="saveTemplateBtn" class="text-sm bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded-lg transition-colors font-semibold" title="Save template (Ctrl+S)">
+                                💾 Save Template
+                            </button>
+                        </div>
                     </div>
-                    <div>
-                        <label for="nameColumn" class="block text-sm font-medium text-gray-300 mb-2">Name Column (Optional)</label>
-                        <select id="nameColumn" class="w-full p-2.5 rounded-lg bg-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-500">
-                            <option value="">None</option>
-                        </select>
+                    
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label for="recipientColumn" class="block text-sm font-medium text-gray-300 mb-2">Recipient Column *</label>
+                                <select id="recipientColumn" class="w-full p-2.5 rounded-lg bg-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-500"></select>
+                            </div>
+                            <div>
+                                <label for="nameColumn" class="block text-sm font-medium text-gray-300 mb-2">Name Column</label>
+                                <select id="nameColumn" class="w-full p-2.5 rounded-lg bg-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                                    <option value="">None</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- CC Options -->
+                        <div class="border border-gray-700 rounded-lg p-4 bg-gray-750">
+                            <h3 class="text-sm font-semibold text-teal-300 mb-3">CC Recipients (Optional)</h3>
+                            
+                            <!-- CC from spreadsheet column -->
+                            <div class="mb-3">
+                                <label for="ccColumn" class="block text-xs font-medium text-gray-400 mb-2">📊 CC from spreadsheet column:</label>
+                                <select id="ccColumn" class="w-full p-2.5 rounded-lg bg-gray-700 text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500">
+                                    <option value="">None</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Manual CC recipients -->
+                            <div>
+                                <label class="block text-xs font-medium text-gray-400 mb-2">✍️ Manual CC (added to all emails):</label>
+                                <div class="bg-gray-700 rounded-lg p-3 min-h-[50px]">
+                                    <div id="ccChipsContainer" class="mb-2"></div>
+                                    <input type="text" id="ccInput" placeholder="Type email and press Enter..." 
+                                        class="w-full bg-transparent text-gray-100 text-sm focus:outline-none placeholder-gray-500">
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">Press Enter, comma, or space to add multiple recipients</p>
+                            </div>
+                        </div>
+
+                        <!-- BCC Options -->
+                        <div class="border border-gray-700 rounded-lg p-4 bg-gray-750">
+                            <h3 class="text-sm font-semibold text-teal-300 mb-3">BCC Recipients (Optional)</h3>
+                            
+                            <!-- BCC from spreadsheet column -->
+                            <div class="mb-3">
+                                <label for="bccColumn" class="block text-xs font-medium text-gray-400 mb-2">📊 BCC from spreadsheet column:</label>
+                                <select id="bccColumn" class="w-full p-2.5 rounded-lg bg-gray-700 text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500">
+                                    <option value="">None</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Manual BCC recipients -->
+                            <div>
+                                <label class="block text-xs font-medium text-gray-400 mb-2">✍️ Manual BCC (added to all emails):</label>
+                                <div class="bg-gray-700 rounded-lg p-3 min-h-[50px]">
+                                    <div id="bccChipsContainer" class="mb-2"></div>
+                                    <input type="text" id="bccInput" placeholder="Type email and press Enter..." 
+                                        class="w-full bg-transparent text-gray-100 text-sm focus:outline-none placeholder-gray-500">
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">Press Enter, comma, or space to add multiple recipients</p>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label for="subjectTemplate" class="block text-sm font-medium text-gray-300 mb-2">Email Subject *</label>
+                            <input type="text" id="subjectTemplate" placeholder="e.g., Your monthly update from {{Company}}" 
+                                class="w-full p-2.5 rounded-lg bg-gray-700 text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                        </div>
+
+                        <div>
+                            <label for="bodyTemplate" class="block text-sm font-medium text-gray-300 mb-2">Email Body *</label>
+                            <textarea id="bodyTemplate" rows="10" placeholder="e.g., Dear {{Name}},&#10;&#10;Your account number {{AccountNumber}} is now ready.&#10;&#10;Best regards,&#10;The Team" 
+                                class="w-full p-2.5 rounded-lg bg-gray-700 text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500 font-mono text-sm"></textarea>
+                            <div class="flex gap-2 mt-2">
+                                <button id="insertGreetingBtn" class="text-xs bg-gray-600 hover:bg-gray-500 text-white px-3 py-1.5 rounded-lg transition-colors">
+                                    Insert Greeting
+                                </button>
+                                <button id="insertSignatureBtn" class="text-xs bg-gray-600 hover:bg-gray-500 text-white px-3 py-1.5 rounded-lg transition-colors">
+                                    Insert Signature
+                                </button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="attachmentsColumn" class="block text-sm font-medium text-gray-300 mb-2">Attachments Column</label>
+                            <select id="attachmentsColumn" class="w-full p-2.5 rounded-lg bg-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                                <option value="">None</option>
+                            </select>
+                        </div>
+
+                        <!-- Merge Option -->
+                        <div class="flex items-center space-x-3 p-4 bg-gray-700 rounded-lg">
+                            <input type="checkbox" id="mergeEmails" class="h-4 w-4 rounded border-gray-600 bg-gray-800 text-teal-500 focus:ring-2 focus:ring-teal-500">
+                            <label for="mergeEmails" class="text-sm text-gray-300">
+                                <span class="font-semibold">Merge multiple rows per recipient</span>
+                                <span class="block text-xs text-gray-400 mt-1">Combine emails to the same recipient into one email with numbered sections</span>
+                            </label>
+                        </div>
                     </div>
-                </div>
-                
-                <div>
-                    <label for="subjectTemplate" class="block text-sm font-medium text-gray-300 mb-2">4. Email Subject *</label>
-                    <input type="text" id="subjectTemplate" placeholder="e.g., Your monthly update from {{Company}}" class="w-full p-2.5 rounded-lg bg-gray-700 text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500">
                 </div>
 
-                <div>
-                    <label for="bodyTemplate" class="block text-sm font-medium text-gray-300 mb-2">5. Email Body *</label>
-                    <textarea id="bodyTemplate" rows="8" placeholder="e.g., Dear {{Name}},&#10;&#10;Your account number {{AccountNumber}} is now ready.&#10;&#10;Best regards,&#10;The Team" class="w-full p-2.5 rounded-lg bg-gray-700 text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500"></textarea>
-                    <div class="flex gap-2 mt-2">
-                        <button id="insertGreetingBtn" class="text-xs bg-gray-600 hover:bg-gray-500 text-white px-3 py-1 rounded-full transition-colors">
-                            Insert Greeting
+                <!-- Filter Section -->
+                <div id="filter-section" class="hidden bg-gray-800 rounded-xl shadow-xl p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-xl font-bold text-teal-300">🔍 Data Filters</h2>
+                        <button id="addFilterBtn" class="text-sm bg-teal-600 hover:bg-teal-500 text-white px-4 py-2 rounded-lg transition-colors font-semibold">
+                            + Add Filter
                         </button>
-                        <button id="insertSignatureBtn" class="text-xs bg-gray-600 hover:bg-gray-500 text-white px-3 py-1 rounded-full transition-colors">
-                            Insert Signature
-                        </button>
                     </div>
-                </div>
-
-                <!-- Advanced Options -->
-                <div class="grid md:grid-cols-3 gap-4">
-                    <div>
-                        <label for="ccColumn" class="block text-sm font-medium text-gray-300 mb-2">CC Column</label>
-                        <select id="ccColumn" class="w-full p-2.5 rounded-lg bg-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-500">
-                            <option value="">None</option>
-                        </select>
+                    <div id="filterContainer" class="space-y-3">
                     </div>
-                    <div>
-                        <label for="bccColumn" class="block text-sm font-medium text-gray-300 mb-2">BCC Column</label>
-                        <select id="bccColumn" class="w-full p-2.5 rounded-lg bg-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-500">
-                            <option value="">None</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label for="attachmentsColumn" class="block text-sm font-medium text-gray-300 mb-2">Attachments</label>
-                        <select id="attachmentsColumn" class="w-full p-2.5 rounded-lg bg-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-500">
-                            <option value="">None</option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Merge Option -->
-                <div class="flex items-center space-x-3 p-3 bg-gray-700 rounded-lg">
-                    <input type="checkbox" id="mergeEmails" class="h-4 w-4 rounded border-gray-600 bg-gray-800 text-teal-500 focus:ring-2 focus:ring-teal-500">
-                    <label for="mergeEmails" class="text-sm text-gray-300">
-                        <span class="font-semibold">Merge multiple rows per recipient</span>
-                        <span class="block text-xs text-gray-400 mt-1">Combine emails to the same recipient into one email with numbered sections</span>
-                    </label>
+                    <div id="filterStats" class="mt-4 text-sm text-teal-400 font-semibold hidden"></div>
                 </div>
 
                 <!-- Action Buttons -->
-                <div class="flex gap-3">
-                    <button id="previewBtn" class="flex-1 py-3 px-6 bg-gray-700 text-white font-bold rounded-lg shadow-md hover:bg-gray-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 focus:ring-offset-gray-800">
-                        👁️ Preview First Email
-                    </button>
-                    <button id="generateBtn" class="flex-1 py-3 px-6 bg-blue-600 text-white font-bold rounded-lg shadow-md hover:bg-blue-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-gray-800">
-                        ✉️ Generate All Drafts
-                    </button>
-                </div>
-
-                <!-- Export Options -->
-                <div id="export-section" class="hidden flex gap-2">
-                    <button id="exportMailtoBtn" class="flex-1 text-xs py-2 px-4 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors">
-                        💾 Export as Links File
-                    </button>
-                    <button id="clearAllBtn" class="flex-1 text-xs py-2 px-4 bg-red-900 hover:bg-red-800 text-white rounded-lg transition-colors">
-                        🗑️ Clear All
-                    </button>
-                </div>
-            </div>
-
-            <!-- Status Message -->
-            <div id="statusMessage" class="mt-6 text-center text-sm font-semibold transition-opacity duration-300 opacity-0"></div>
-            
-            <!-- Email Links Container -->
-            <div id="emailLinksContainer" class="mt-8 space-y-3 pr-2 max-h-96 overflow-y-auto custom-scrollbar">
-            </div>
-
-            <!-- Preview Modal -->
-            <div id="previewModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                <div class="bg-gray-800 rounded-xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto custom-scrollbar">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-2xl font-bold text-teal-400">Email Preview</h2>
-                        <button id="closePreviewBtn" class="p-2 hover:bg-gray-700 rounded-lg transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                            </svg>
+                <div class="bg-gray-800 rounded-xl shadow-xl p-6">
+                    <div class="grid grid-cols-2 gap-4">
+                        <button id="previewBtn" class="py-4 px-6 bg-gray-700 text-white font-bold rounded-lg shadow-md hover:bg-gray-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 focus:ring-offset-gray-800 text-lg">
+                            👁️ Preview First Email
+                        </button>
+                        <button id="generateBtn" class="py-4 px-6 bg-blue-600 text-white font-bold rounded-lg shadow-md hover:bg-blue-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-gray-800 text-lg flex items-center justify-center gap-2">
+                            <span>✉️ Generate All Drafts</span>
+                            <span id="generateSpinner" class="spinner hidden"></span>
                         </button>
                     </div>
-                    <div id="previewContent" class="space-y-4">
-                        <div>
-                            <label class="text-xs font-bold text-gray-400">TO:</label>
-                            <p id="previewTo" class="text-sm text-gray-200 bg-gray-700 p-2 rounded mt-1"></p>
-                        </div>
-                        <div id="previewCcSection" class="hidden">
-                            <label class="text-xs font-bold text-gray-400">CC:</label>
-                            <p id="previewCc" class="text-sm text-gray-200 bg-gray-700 p-2 rounded mt-1"></p>
-                        </div>
-                        <div id="previewBccSection" class="hidden">
-                            <label class="text-xs font-bold text-gray-400">BCC:</label>
-                            <p id="previewBcc" class="text-sm text-gray-200 bg-gray-700 p-2 rounded mt-1"></p>
-                        </div>
-                        <div>
-                            <label class="text-xs font-bold text-gray-400">SUBJECT:</label>
-                            <p id="previewSubject" class="text-sm text-gray-200 bg-gray-700 p-2 rounded mt-1"></p>
-                        </div>
-                        <div>
-                            <label class="text-xs font-bold text-gray-400">BODY:</label>
-                            <pre id="previewBody" class="text-sm text-gray-200 bg-gray-700 p-3 rounded mt-1 whitespace-pre-wrap font-sans"></pre>
+
+                    <!-- Export Options -->
+                    <div id="export-section" class="hidden grid grid-cols-3 gap-4 mt-4">
+                        <button id="exportMailtoBtn" class="py-2 px-4 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors text-sm">
+                            💾 Export TXT
+                        </button>
+                        <button id="exportCsvBtn" class="py-2 px-4 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors text-sm">
+                            📊 Export CSV
+                        </button>
+                        <button id="clearAllBtn" class="py-2 px-4 bg-red-900 hover:bg-red-800 text-white rounded-lg transition-colors text-sm">
+                            🗑️ Clear All
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Status Message -->
+                <div id="statusMessage" class="text-center text-sm font-semibold transition-opacity duration-300 opacity-0"></div>
+                
+                <!-- Email Links Container -->
+                <div id="emailLinksContainer" class="space-y-3 max-h-[600px] overflow-y-auto custom-scrollbar">
+                </div>
+            </div>
+
+            <!-- Right Column - Variable Usage & Info -->
+            <div class="space-y-6">
+                <!-- Variables Used Panel -->
+                <div id="variables-used-panel" class="bg-gray-800 rounded-xl shadow-xl p-6">
+                    <h2 class="text-xl font-bold text-teal-300 mb-4">📋 Template Analysis</h2>
+                    
+                    <div class="mb-4">
+                        <h3 class="text-sm font-semibold text-gray-400 mb-2">Variables in Subject:</h3>
+                        <div id="subjectVarsDisplay" class="min-h-[40px] bg-gray-700 rounded p-3 text-xs">
+                            <span class="text-gray-500 italic">No variables detected</span>
                         </div>
                     </div>
+
+                    <div class="mb-4">
+                        <h3 class="text-sm font-semibold text-gray-400 mb-2">Variables in Body:</h3>
+                        <div id="bodyVarsDisplay" class="min-h-[60px] bg-gray-700 rounded p-3 text-xs max-h-48 overflow-y-auto custom-scrollbar">
+                            <span class="text-gray-500 italic">No variables detected</span>
+                        </div>
+                    </div>
+
+                    <div class="border-t border-gray-700 pt-4">
+                        <h3 class="text-sm font-semibold text-gray-400 mb-2">All Available Columns:</h3>
+                        <div id="allColumnsDisplay" class="bg-gray-700 rounded p-3 text-xs max-h-48 overflow-y-auto custom-scrollbar">
+                            <span class="text-gray-500 italic">Upload a file to see columns</span>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 p-3 bg-gray-900 rounded-lg text-xs">
+                        <p class="text-gray-400">
+                            💡 <span class="font-semibold text-teal-400">Tip:</span> Green badges = used in template, Gray badges = available but unused
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Quick Stats -->
+                <div id="stats-panel" class="hidden bg-gray-800 rounded-xl shadow-xl p-6">
+                    <h2 class="text-xl font-bold text-teal-300 mb-4">📊 Statistics</h2>
+                    <div class="space-y-3 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">Total Rows:</span>
+                            <span id="stat-total-rows" class="font-bold text-teal-300">0</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">After Filters:</span>
+                            <span id="stat-filtered-rows" class="font-bold text-teal-300">0</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">Invalid Emails:</span>
+                            <span id="stat-invalid-emails" class="font-bold text-red-400">0</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">Variables Used:</span>
+                            <span id="stat-vars-used" class="font-bold text-teal-300">0</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">Emails Generated:</span>
+                            <span id="stat-emails-gen" class="font-bold text-teal-300">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Preview Modal -->
+    <div id="previewModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="bg-gray-800 rounded-xl p-6 max-w-3xl w-full max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold text-teal-400">📧 Email Preview</h2>
+                <button id="closePreviewBtn" class="p-2 hover:bg-gray-700 rounded-lg transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div id="previewContent" class="space-y-4">
+                <div>
+                    <label class="text-xs font-bold text-gray-400">TO:</label>
+                    <p id="previewTo" class="text-sm text-gray-200 bg-gray-700 p-3 rounded mt-1"></p>
+                </div>
+                <div id="previewCcSection" class="hidden">
+                    <label class="text-xs font-bold text-gray-400">CC:</label>
+                    <p id="previewCc" class="text-sm text-gray-200 bg-gray-700 p-3 rounded mt-1"></p>
+                </div>
+                <div id="previewBccSection" class="hidden">
+                    <label class="text-xs font-bold text-gray-400">BCC:</label>
+                    <p id="previewBcc" class="text-sm text-gray-200 bg-gray-700 p-3 rounded mt-1"></p>
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-gray-400">SUBJECT:</label>
+                    <p id="previewSubject" class="text-sm text-gray-200 bg-gray-700 p-3 rounded mt-1"></p>
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-gray-400">BODY:</label>
+                    <pre id="previewBody" class="text-sm text-gray-200 bg-gray-700 p-3 rounded mt-1 whitespace-pre-wrap font-sans"></pre>
                 </div>
             </div>
         </div>
@@ -281,7 +649,6 @@
             const headersSectionEl = document.getElementById('headers-section');
             const headerTagsEl = document.getElementById('headerTags');
             const previewSectionEl = document.getElementById('preview-section');
-            const dataPreviewTableEl = document.getElementById('dataPreviewTable');
             const previewTableHeadEl = document.getElementById('previewTableHead');
             const previewTableBodyEl = document.getElementById('previewTableBody');
             const rowCountEl = document.getElementById('rowCount');
@@ -294,12 +661,14 @@
             const attachmentsColEl = document.getElementById('attachmentsColumn');
             const mergeEmailsEl = document.getElementById('mergeEmails');
             const generateBtn = document.getElementById('generateBtn');
+            const generateSpinner = document.getElementById('generateSpinner');
             const previewBtn = document.getElementById('previewBtn');
             const statusMessageEl = document.getElementById('statusMessage');
             const linksContainerEl = document.getElementById('emailLinksContainer');
             const helpBtn = document.getElementById('helpBtn');
-            const helpModal = document.getElementById('helpModal');
-            const closeHelpBtn = document.getElementById('closeHelpBtn');
+            const helpPanel = document.getElementById('helpPanel');
+            const closeHelpPanel = document.getElementById('closeHelpPanel');
+            const helpPanelHeader = document.getElementById('helpPanelHeader');
             const previewModal = document.getElementById('previewModal');
             const closePreviewBtn = document.getElementById('closePreviewBtn');
             const insertGreetingBtn = document.getElementById('insertGreetingBtn');
@@ -310,30 +679,374 @@
             const filterStats = document.getElementById('filterStats');
             const exportSection = document.getElementById('export-section');
             const exportMailtoBtn = document.getElementById('exportMailtoBtn');
+            const exportCsvBtn = document.getElementById('exportCsvBtn');
             const clearAllBtn = document.getElementById('clearAllBtn');
+            const statsPanel = document.getElementById('stats-panel');
+            const undoBtn = document.getElementById('undoBtn');
+            const saveTemplateBtn = document.getElementById('saveTemplateBtn');
+            const loadTemplateBtn = document.getElementById('loadTemplateBtn');
+            const templateModal = document.getElementById('templateModal');
+            const closeTemplateModal = document.getElementById('closeTemplateModal');
+            const templateList = document.getElementById('templateList');
+            const progressBar = document.getElementById('progressBar');
+            const toastContainer = document.getElementById('toastContainer');
+            
+            // CC/BCC elements
+            const ccInput = document.getElementById('ccInput');
+            const bccInput = document.getElementById('bccInput');
+            const ccChipsContainer = document.getElementById('ccChipsContainer');
+            const bccChipsContainer = document.getElementById('bccChipsContainer');
+            
+            // Variable display elements
+            const subjectVarsDisplay = document.getElementById('subjectVarsDisplay');
+            const bodyVarsDisplay = document.getElementById('bodyVarsDisplay');
+            const allColumnsDisplay = document.getElementById('allColumnsDisplay');
 
             let csvData = null;
             let csvDataHeaders = [];
             let filters = [];
             let generatedEmails = [];
+            let ccEmails = [];
+            let bccEmails = [];
+            let undoStack = [];
+
+            // Toast notification system
+            const showToast = (message, type = 'info') => {
+                const toast = document.createElement('div');
+                toast.className = `toast ${type}`;
+                toast.textContent = message;
+                toastContainer.appendChild(toast);
+                
+                setTimeout(() => toast.classList.add('show'), 10);
+                
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                    setTimeout(() => toast.remove(), 300);
+                }, 3000);
+            };
+
+            // Progress bar
+            const showProgress = (show = true) => {
+                if (show) {
+                    progressBar.style.transform = 'scaleX(1)';
+                } else {
+                    setTimeout(() => {
+                        progressBar.style.transform = 'scaleX(0)';
+                    }, 300);
+                }
+            };
 
             const showStatus = (message, isError = false) => {
                 statusMessageEl.textContent = message;
-                statusMessageEl.className = `mt-6 text-center text-sm font-semibold transition-opacity duration-300 opacity-100 ${isError ? 'text-red-400' : 'text-green-400'}`;
+                statusMessageEl.className = `text-center text-sm font-semibold transition-opacity duration-300 opacity-100 ${isError ? 'text-red-400' : 'text-green-400'}`;
             };
 
-            // Help modal handlers
+            // Email validation
+            const validateEmail = (email) => {
+                const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                return re.test(String(email).toLowerCase());
+            };
+
+            // Draggable help panel
+            let isDragging = false;
+            let currentX, currentY, initialX, initialY;
+
             helpBtn.addEventListener('click', () => {
-                helpModal.classList.remove('hidden');
+                helpPanel.classList.remove('hidden');
+                helpPanel.style.top = '20px';
+                helpPanel.style.right = '20px';
             });
 
-            closeHelpBtn.addEventListener('click', () => {
-                helpModal.classList.add('hidden');
+            closeHelpPanel.addEventListener('click', () => {
+                helpPanel.classList.add('hidden');
             });
 
-            helpModal.addEventListener('click', (e) => {
-                if (e.target === helpModal) {
-                    helpModal.classList.add('hidden');
+            helpPanelHeader.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                initialX = e.clientX - (parseInt(helpPanel.style.left) || 0);
+                initialY = e.clientY - (parseInt(helpPanel.style.top) || 0);
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (isDragging) {
+                    e.preventDefault();
+                    currentX = e.clientX - initialX;
+                    currentY = e.clientY - initialY;
+                    helpPanel.style.left = currentX + 'px';
+                    helpPanel.style.top = currentY + 'px';
+                    helpPanel.style.right = 'auto';
+                }
+            });
+
+            document.addEventListener('mouseup', () => {
+                isDragging = false;
+            });
+
+            // CC/BCC multi-input functionality
+            const addChip = (container, email, list) => {
+                const trimmedEmail = email.trim();
+                if (!trimmedEmail) return false;
+                
+                const isValid = validateEmail(trimmedEmail);
+                
+                const chip = document.createElement('span');
+                chip.className = `chip ${!isValid ? 'invalid' : ''}`;
+                chip.innerHTML = `
+                    ${trimmedEmail}
+                    <button type="button">×</button>
+                `;
+                
+                chip.querySelector('button').addEventListener('click', () => {
+                    const index = list.indexOf(trimmedEmail);
+                    if (index > -1) list.splice(index, 1);
+                    chip.remove();
+                    updateInvalidEmailCount();
+                });
+                
+                container.appendChild(chip);
+                list.push(trimmedEmail);
+                updateInvalidEmailCount();
+                
+                if (!isValid) {
+                    showToast(`Invalid email: ${trimmedEmail}`, 'error');
+                }
+                
+                return true;
+            };
+
+            const updateInvalidEmailCount = () => {
+                const invalidCount = document.querySelectorAll('.chip.invalid').length;
+                document.getElementById('stat-invalid-emails').textContent = invalidCount;
+            };
+
+            const handleEmailInput = (input, container, list) => {
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ',' || e.key === ' ') {
+                        e.preventDefault();
+                        const email = input.value.trim().replace(/,/g, '');
+                        if (email && addChip(container, email, list)) {
+                            input.value = '';
+                        }
+                    } else if (e.key === 'Backspace' && input.value === '' && list.length > 0) {
+                        list.pop();
+                        container.lastChild.remove();
+                        updateInvalidEmailCount();
+                    }
+                });
+
+                input.addEventListener('blur', () => {
+                    const email = input.value.trim().replace(/,/g, '');
+                    if (email && addChip(container, email, list)) {
+                        input.value = '';
+                    }
+                });
+            };
+
+            handleEmailInput(ccInput, ccChipsContainer, ccEmails);
+            handleEmailInput(bccInput, bccChipsContainer, bccEmails);
+
+            // Variable detection and display
+            const extractVariables = (text) => {
+                const regex = /\{\{([^}]+)\}\}/g;
+                const matches = [];
+                let match;
+                while ((match = regex.exec(text)) !== null) {
+                    if (!matches.includes(match[1])) {
+                        matches.push(match[1]);
+                    }
+                }
+                return matches;
+            };
+
+            const updateVariableDisplay = () => {
+                const subjectVars = extractVariables(subjectTemplateEl.value);
+                const bodyVars = extractVariables(bodyTemplateEl.value);
+                const allUsedVars = [...new Set([...subjectVars, ...bodyVars])];
+
+                if (subjectVars.length === 0) {
+                    subjectVarsDisplay.innerHTML = '<span class="text-gray-500 italic">No variables detected</span>';
+                } else {
+                    subjectVarsDisplay.innerHTML = subjectVars.map(v => 
+                        `<span class="variable-badge used">{{${v}}}</span>`
+                    ).join(' ');
+                }
+
+                if (bodyVars.length === 0) {
+                    bodyVarsDisplay.innerHTML = '<span class="text-gray-500 italic">No variables detected</span>';
+                } else {
+                    bodyVarsDisplay.innerHTML = bodyVars.map(v => 
+                        `<span class="variable-badge used">{{${v}}}</span>`
+                    ).join(' ');
+                }
+
+                if (csvDataHeaders.length > 0) {
+                    allColumnsDisplay.innerHTML = csvDataHeaders.map(header => {
+                        const isUsed = allUsedVars.includes(header);
+                        return `<span class="variable-badge ${isUsed ? 'used' : ''}">{{${header}}}</span>`;
+                    }).join(' ');
+                }
+
+                document.getElementById('stat-vars-used').textContent = allUsedVars.length;
+            };
+
+            subjectTemplateEl.addEventListener('input', updateVariableDisplay);
+            bodyTemplateEl.addEventListener('input', updateVariableDisplay);
+
+            // Template management
+            const saveTemplate = () => {
+                const templateName = prompt('Enter a name for this template:');
+                if (!templateName) return;
+
+                const template = {
+                    name: templateName,
+                    subject: subjectTemplateEl.value,
+                    body: bodyTemplateEl.value,
+                    recipientColumn: recipientColEl.value,
+                    nameColumn: nameColEl.value,
+                    ccColumn: ccColEl.value,
+                    bccColumn: bccColEl.value,
+                    ccEmails: [...ccEmails],
+                    bccEmails: [...bccEmails],
+                    mergeEmails: mergeEmailsEl.checked,
+                    timestamp: new Date().toISOString()
+                };
+
+                const templates = JSON.parse(localStorage.getItem('emailTemplates') || '[]');
+                templates.push(template);
+                localStorage.setItem('emailTemplates', JSON.stringify(templates));
+
+                showToast(`Template "${templateName}" saved successfully`, 'success');
+            };
+
+            const loadTemplates = () => {
+                const templates = JSON.parse(localStorage.getItem('emailTemplates') || '[]');
+                
+                if (templates.length === 0) {
+                    templateList.innerHTML = '<p class="text-gray-400 text-center py-8">No saved templates</p>';
+                    return;
+                }
+
+                templateList.innerHTML = templates.map((template, index) => `
+                    <div class="template-card bg-gray-700 p-4 rounded-lg" data-index="${index}">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="font-bold text-teal-300">${template.name}</h3>
+                            <button class="delete-template text-red-400 hover:text-red-300" data-index="${index}">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </button>
+                        </div>
+                        <p class="text-xs text-gray-400 mb-2">Subject: ${template.subject.substring(0, 50)}${template.subject.length > 50 ? '...' : ''}</p>
+                        <p class="text-xs text-gray-500">${new Date(template.timestamp).toLocaleDateString()}</p>
+                    </div>
+                `).join('');
+
+                // Add click handlers
+                document.querySelectorAll('.template-card').forEach(card => {
+                    card.addEventListener('click', (e) => {
+                        if (e.target.closest('.delete-template')) return;
+                        const index = parseInt(card.dataset.index);
+                        applyTemplate(templates[index]);
+                        templateModal.classList.add('hidden');
+                    });
+                });
+
+                document.querySelectorAll('.delete-template').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const index = parseInt(btn.dataset.index);
+                        if (confirm(`Delete template "${templates[index].name}"?`)) {
+                            templates.splice(index, 1);
+                            localStorage.setItem('emailTemplates', JSON.stringify(templates));
+                            loadTemplates();
+                            showToast('Template deleted', 'info');
+                        }
+                    });
+                });
+            };
+
+            const applyTemplate = (template) => {
+                subjectTemplateEl.value = template.subject;
+                bodyTemplateEl.value = template.body;
+                mergeEmailsEl.checked = template.mergeEmails;
+
+                // Clear existing manual emails
+                ccEmails.length = 0;
+                bccEmails.length = 0;
+                ccChipsContainer.innerHTML = '';
+                bccChipsContainer.innerHTML = '';
+
+                // Add template emails
+                template.ccEmails.forEach(email => addChip(ccChipsContainer, email, ccEmails));
+                template.bccEmails.forEach(email => addChip(bccChipsContainer, email, bccEmails));
+
+                updateVariableDisplay();
+                showToast(`Template "${template.name}" loaded`, 'success');
+            };
+
+            saveTemplateBtn.addEventListener('click', saveTemplate);
+            loadTemplateBtn.addEventListener('click', () => {
+                loadTemplates();
+                templateModal.classList.remove('hidden');
+            });
+
+            closeTemplateModal.addEventListener('click', () => {
+                templateModal.classList.add('hidden');
+            });
+
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                // Help panel toggle (?)
+                if (e.key === '?' && !e.ctrlKey && !e.metaKey) {
+                    if (document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+                        e.preventDefault();
+                        helpPanel.classList.toggle('hidden');
+                    }
+                }
+
+                // Generate (Ctrl/Cmd + G)
+                if ((e.ctrlKey || e.metaKey) && e.key === 'g') {
+                    e.preventDefault();
+                    generateBtn.click();
+                }
+
+                // Preview (Ctrl/Cmd + P)
+                if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+                    e.preventDefault();
+                    previewBtn.click();
+                }
+
+                // Save template (Ctrl/Cmd + S)
+                if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                    e.preventDefault();
+                    saveTemplate();
+                }
+
+                // Undo (Ctrl/Cmd + Z)
+                if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+                    if (undoStack.length > 0) {
+                        e.preventDefault();
+                        const lastState = undoStack.pop();
+                        generatedEmails = lastState.emails;
+                        linksContainerEl.innerHTML = lastState.html;
+                        exportSection.classList.remove('hidden');
+                        document.getElementById('stat-emails-gen').textContent = generatedEmails.length;
+                        showToast('Restored previous emails', 'success');
+                        undoBtn.disabled = undoStack.length === 0;
+                    }
+                }
+            });
+
+            // Undo button
+            undoBtn.addEventListener('click', () => {
+                if (undoStack.length > 0) {
+                    const lastState = undoStack.pop();
+                    generatedEmails = lastState.emails;
+                    linksContainerEl.innerHTML = lastState.html;
+                    exportSection.classList.remove('hidden');
+                    document.getElementById('stat-emails-gen').textContent = generatedEmails.length;
+                    showToast('Restored previous emails', 'success');
+                    undoBtn.disabled = undoStack.length === 0;
                 }
             });
 
@@ -353,6 +1066,7 @@
                 const file = csvFileEl.files[0];
                 if (!file) return;
                 
+                showProgress(true);
                 showStatus('Reading file...', false);
                 const fileName = file.name.toLowerCase();
                 
@@ -362,6 +1076,7 @@
                     parseExcel(file);
                 } else {
                     showStatus('Unsupported file format. Please upload CSV or Excel files.', true);
+                    showProgress(false);
                 }
             });
 
@@ -375,6 +1090,7 @@
                     error: function(error) {
                         console.error('CSV parsing error:', error);
                         showStatus('Failed to parse CSV file. Please ensure it is a valid CSV format.', true);
+                        showProgress(false);
                     }
                 });
             };
@@ -390,6 +1106,7 @@
                         
                         if (jsonData.length === 0) {
                             showStatus('The Excel file contains no data rows.', true);
+                            showProgress(false);
                             return;
                         }
                         
@@ -398,6 +1115,7 @@
                     } catch (error) {
                         console.error('Excel parsing error:', error);
                         showStatus('Failed to parse Excel file. Please ensure it is a valid format.', true);
+                        showProgress(false);
                     }
                 };
                 reader.readAsArrayBuffer(file);
@@ -406,11 +1124,11 @@
             const handleParsedData = (data, headers, errors) => {
                 if (errors && errors.length > 0) {
                     console.error('Parsing errors:', errors);
-                    showStatus('Warning: Some rows had parsing errors. Check console for details.', true);
                 }
                 
                 if (data.length === 0) {
                     showStatus('The file contains no data rows.', true);
+                    showProgress(false);
                     return;
                 }
                 
@@ -419,24 +1137,31 @@
                 
                 if (!csvDataHeaders || csvDataHeaders.length === 0) {
                     showStatus('Could not find headers. Please ensure the first row contains column names.', true);
+                    showProgress(false);
                     return;
                 }
 
                 populateHeaderTags(csvDataHeaders);
                 populateDropdowns(csvDataHeaders);
                 showDataPreview(data, headers);
+                updateVariableDisplay();
                 headersSectionEl.classList.remove('hidden');
                 previewSectionEl.classList.remove('hidden');
                 filterSection.classList.remove('hidden');
+                statsPanel.classList.remove('hidden');
+                
+                document.getElementById('stat-total-rows').textContent = data.length;
+                document.getElementById('stat-filtered-rows').textContent = data.length;
+                
                 showStatus(`✅ Loaded ${data.length} rows with ${csvDataHeaders.length} columns`, false);
+                showToast(`Loaded ${data.length} rows successfully`, 'success');
+                showProgress(false);
             };
 
             const showDataPreview = (data, headers) => {
-                // Show first 3 rows
                 const previewRows = data.slice(0, 3);
                 rowCountEl.textContent = `Showing 3 of ${data.length} rows`;
                 
-                // Create table header
                 let headerHTML = '<tr>';
                 headers.forEach(header => {
                     headerHTML += `<th class="text-left px-2 py-1 text-gray-300 border-b border-gray-600">${header}</th>`;
@@ -444,7 +1169,6 @@
                 headerHTML += '</tr>';
                 previewTableHeadEl.innerHTML = headerHTML;
                 
-                // Create table body
                 let bodyHTML = '';
                 previewRows.forEach(row => {
                     bodyHTML += '<tr class="border-b border-gray-600">';
@@ -463,14 +1187,14 @@
                 headers.forEach(header => {
                     const tag = document.createElement('span');
                     tag.textContent = `{{${header}}}`;
-                    tag.className = 'cursor-pointer bg-teal-600 hover:bg-teal-500 transition-colors duration-200 text-white text-xs font-semibold px-3 py-1 rounded-full';
+                    tag.className = 'cursor-pointer bg-teal-600 hover:bg-teal-500 transition-colors duration-200 text-white text-xs font-semibold px-3 py-1.5 rounded-full';
                     tag.onclick = () => {
                         const placeholder = `{{${header}}}`;
                         navigator.clipboard.writeText(placeholder).then(() => {
-                            showStatus(`✅ Copied '${placeholder}' to clipboard`, false);
+                            showToast(`Copied '${placeholder}'`, 'success');
                         }).catch(err => {
                             console.error('Failed to copy text: ', err);
-                            showStatus('Failed to copy. Please copy manually.', true);
+                            showToast('Failed to copy', 'error');
                         });
                     };
                     headerTagsEl.appendChild(tag);
@@ -496,7 +1220,7 @@
                     });
                 });
 
-                // Auto-select email column if found
+                // Auto-select email column
                 const emailHeaders = headers.filter(h => 
                     h.toLowerCase().includes('email') || h.toLowerCase().includes('mail')
                 );
@@ -504,7 +1228,7 @@
                     recipientColEl.value = emailHeaders[0];
                 }
 
-                // Auto-select name column if found
+                // Auto-select name column
                 const nameHeaders = headers.filter(h => 
                     h.toLowerCase().includes('name') || h.toLowerCase() === 'first' || h.toLowerCase() === 'firstname'
                 );
@@ -523,22 +1247,22 @@
             const addFilter = () => {
                 const filterId = filterIdCounter++;
                 const filterDiv = document.createElement('div');
-                filterDiv.className = 'flex gap-2 items-center bg-gray-800 p-2 rounded';
+                filterDiv.className = 'flex gap-2 items-center bg-gray-700 p-3 rounded-lg';
                 filterDiv.dataset.filterId = filterId;
                 
                 filterDiv.innerHTML = `
-                    <select class="filter-column flex-1 p-2 rounded bg-gray-600 text-gray-100 text-xs focus:outline-none focus:ring-2 focus:ring-teal-500">
+                    <select class="filter-column flex-1 p-2 rounded bg-gray-600 text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500">
                         ${csvDataHeaders.map(h => `<option value="${h}">${h}</option>`).join('')}
                     </select>
-                    <select class="filter-operator p-2 rounded bg-gray-600 text-gray-100 text-xs focus:outline-none focus:ring-2 focus:ring-teal-500">
+                    <select class="filter-operator p-2 rounded bg-gray-600 text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500">
                         <option value="equals">Equals</option>
                         <option value="contains">Contains</option>
                         <option value="not_empty">Not Empty</option>
                         <option value="empty">Empty</option>
                     </select>
-                    <input type="text" class="filter-value flex-1 p-2 rounded bg-gray-600 text-gray-100 text-xs placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500" placeholder="Value">
-                    <button class="remove-filter p-2 bg-red-900 hover:bg-red-800 rounded text-white text-xs transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <input type="text" class="filter-value flex-1 p-2 rounded bg-gray-600 text-gray-100 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500" placeholder="Value">
+                    <button class="remove-filter p-2 bg-red-900 hover:bg-red-800 rounded text-white transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                         </svg>
                     </button>
@@ -579,12 +1303,14 @@
                 const activeFilters = Array.from(filterContainer.querySelectorAll('[data-filter-id]'));
                 if (activeFilters.length === 0) {
                     filterStats.classList.add('hidden');
+                    document.getElementById('stat-filtered-rows').textContent = csvData.length;
                     return;
                 }
                 
                 const filteredData = getFilteredData();
                 filterStats.textContent = `${filteredData.length} of ${csvData.length} rows match filters`;
                 filterStats.classList.remove('hidden');
+                document.getElementById('stat-filtered-rows').textContent = filteredData.length;
             };
 
             const getFilteredData = () => {
@@ -627,6 +1353,7 @@
                 const textAfter = bodyTemplateEl.value.substring(cursorPos);
                 bodyTemplateEl.value = textBefore + greeting + textAfter;
                 bodyTemplateEl.focus();
+                updateVariableDisplay();
             });
 
             insertSignatureBtn.addEventListener('click', () => {
@@ -647,17 +1374,17 @@
                 const bccCol = bccColEl.value;
 
                 if (!csvData || csvData.length === 0) {
-                    showStatus('Please upload a file first.', true);
+                    showToast('Please upload a file first', 'error');
                     return;
                 }
                 if (!recipientCol) {
-                    showStatus('Please select a recipient column.', true);
+                    showToast('Please select a recipient column', 'error');
                     return;
                 }
 
                 const filteredData = getFilteredData();
                 if (filteredData.length === 0) {
-                    showStatus('No rows match your filters.', true);
+                    showToast('No rows match your filters', 'error');
                     return;
                 }
 
@@ -667,6 +1394,9 @@
                 let finalBody = bodyTemplate;
                 let ccEmail = ccCol ? (firstRow[ccCol] || '') : '';
                 let bccEmail = bccCol ? (firstRow[bccCol] || '') : '';
+
+                const allCC = [...ccEmails, ccEmail].filter(e => e).join(', ');
+                const allBCC = [...bccEmails, bccEmail].filter(e => e).join(', ');
 
                 csvDataHeaders.forEach(header => {
                     const placeholder = `{{${header}}}`;
@@ -679,16 +1409,16 @@
                 document.getElementById('previewSubject').textContent = finalSubject || '(No subject)';
                 document.getElementById('previewBody').textContent = finalBody || '(No body)';
                 
-                if (ccEmail) {
+                if (allCC) {
                     document.getElementById('previewCcSection').classList.remove('hidden');
-                    document.getElementById('previewCc').textContent = ccEmail;
+                    document.getElementById('previewCc').textContent = allCC;
                 } else {
                     document.getElementById('previewCcSection').classList.add('hidden');
                 }
                 
-                if (bccEmail) {
+                if (allBCC) {
                     document.getElementById('previewBccSection').classList.remove('hidden');
-                    document.getElementById('previewBcc').textContent = bccEmail;
+                    document.getElementById('previewBcc').textContent = allBCC;
                 } else {
                     document.getElementById('previewBccSection').classList.add('hidden');
                 }
@@ -707,31 +1437,41 @@
                 const shouldMerge = mergeEmailsEl.checked;
 
                 if (!csvData) {
-                    showStatus('Please upload a file first.', true);
+                    showToast('Please upload a file first', 'error');
                     return;
                 }
                 if (!recipientCol) {
-                    showStatus('Please select a recipient column.', true);
+                    showToast('Please select a recipient column', 'error');
                     return;
                 }
                 
                 const filteredData = getFilteredData();
                 if (filteredData.length === 0) {
-                    showStatus('No rows match your filters.', true);
+                    showToast('No rows match your filters', 'error');
                     return;
                 }
 
+                showProgress(true);
                 showStatus('Generating email drafts...', false);
-                linksContainerEl.innerHTML = '';
-                generatedEmails = [];
+                generateSpinner.classList.remove('hidden');
+                generateBtn.disabled = true;
 
-                processAndGenerateEmails(filteredData, recipientCol, subjectTemplate, bodyTemplate, ccCol, bccCol, attachmentsCol, shouldMerge);
-                exportSection.classList.remove('hidden');
+                // Use setTimeout to allow UI to update
+                setTimeout(() => {
+                    linksContainerEl.innerHTML = '';
+                    generatedEmails = [];
+
+                    processAndGenerateEmails(filteredData, recipientCol, subjectTemplate, bodyTemplate, ccCol, bccCol, attachmentsCol, shouldMerge);
+                    
+                    exportSection.classList.remove('hidden');
+                    showProgress(false);
+                    generateSpinner.classList.add('hidden');
+                    generateBtn.disabled = false;
+                }, 100);
             });
 
             const processAndGenerateEmails = (data, recipientCol, subjectTemplate, bodyTemplate, ccCol, bccCol, attachmentsCol, shouldMerge) => {
                 if (shouldMerge) {
-                    // Group rows by recipient
                     const recipientGroups = {};
                     data.forEach(row => {
                         const recipient = row[recipientCol];
@@ -748,8 +1488,8 @@
                     for (const recipient in recipientGroups) {
                         const rowsForRecipient = recipientGroups[recipient];
                         let mergedBody = '';
-                        let allCCs = new Set();
-                        let allBCCs = new Set();
+                        let allCCs = new Set(ccEmails);
+                        let allBCCs = new Set(bccEmails);
                         let allAttachments = new Set();
                         let firstSubject = '';
                         let firstRowVariables = {}; 
@@ -779,17 +1519,18 @@
                             if (attachmentsCol && row[attachmentsCol]) allAttachments.add(row[attachmentsCol]);
                         });
 
-                        const ccEmails = Array.from(allCCs).join(', ');
-                        const bccEmails = Array.from(allBCCs).join(', ');
+                        const ccEmailsFinal = Array.from(allCCs).join(', ');
+                        const bccEmailsFinal = Array.from(allBCCs).join(', ');
                         const attachments = Array.from(allAttachments).join(', ');
                         
-                        createEmailOutputBlock(recipient, firstSubject, mergedBody, ccEmails, bccEmails, attachments, firstRowVariables, true, rowsForRecipient.length);
+                        createEmailOutputBlock(recipient, firstSubject, mergedBody, ccEmailsFinal, bccEmailsFinal, attachments, firstRowVariables, true, rowsForRecipient.length);
                         generatedCount++;
                     }
 
                     showStatus(`✅ Generated ${generatedCount} merged email drafts from ${data.length} rows`, false);
+                    showToast(`Generated ${generatedCount} merged emails`, 'success');
+                    document.getElementById('stat-emails-gen').textContent = generatedCount;
                 } else {
-                    // One email per row
                     let generatedCount = 0;
                     data.forEach(row => {
                         const recipient = row[recipientCol];
@@ -801,6 +1542,9 @@
                             let bccEmail = bccCol ? (row[bccCol] || '') : '';
                             let attachments = attachmentsCol ? (row[attachmentsCol] || '') : '';
 
+                            const allCC = [...ccEmails, ccEmail].filter(e => e).join(', ');
+                            const allBCC = [...bccEmails, bccEmail].filter(e => e).join(', ');
+
                             const variables = {};
                             csvDataHeaders.forEach(header => {
                                 const placeholder = `{{${header}}}`;
@@ -810,15 +1554,18 @@
                                 variables[header] = value;
                             });
                             
-                            createEmailOutputBlock(recipient, finalSubject, finalBody, ccEmail, bccEmail, attachments, variables, false, 1);
+                            createEmailOutputBlock(recipient, finalSubject, finalBody, allCC, allBCC, attachments, variables, false, 1);
                             generatedCount++;
                         }
                     });
 
                     if (generatedCount > 0) {
                         showStatus(`✅ Generated ${generatedCount} email drafts`, false);
+                        showToast(`Generated ${generatedCount} emails`, 'success');
+                        document.getElementById('stat-emails-gen').textContent = generatedCount;
                     } else {
                         showStatus('No valid rows found to generate emails.', true);
+                        showToast('No valid rows found', 'error');
                     }
                 }
             };
@@ -849,7 +1596,7 @@
 
                 const linkEl = document.createElement('a');
                 linkEl.href = mailtoHref;
-                linkEl.className = "flex-grow block bg-gray-700 hover:bg-gray-600 transition-colors duration-200 p-3 rounded-lg text-sm text-left shadow-sm";
+                linkEl.className = "flex-grow block bg-gray-700 hover:bg-gray-600 transition-colors duration-200 p-4 rounded-lg text-sm text-left shadow-md";
                 
                 let linkContent = `<span class="font-bold text-teal-300">To:</span> ${recipient}`;
                 if (isMerged) linkContent += `<br><span class="font-bold text-amber-300">Merged:</span> ${rowCount} entries`;
@@ -864,30 +1611,30 @@
                     if (!linkEl.dataset.clicked) {
                         linkEl.classList.remove('bg-gray-700', 'hover:bg-gray-600');
                         linkEl.classList.add('bg-green-800', 'text-green-200');
-                        linkEl.innerHTML += ' <span class="text-green-300">✓ Opened</span>';
+                        linkEl.innerHTML += ' <span class="text-green-300 text-lg">✓ Opened</span>';
                         linkEl.dataset.clicked = 'true';
                     }
                 });
 
                 const copyButton = document.createElement('button');
-                copyButton.className = "shrink-0 p-3 bg-gray-700 hover:bg-gray-600 transition-colors duration-200 rounded-lg text-sm shadow-sm";
+                copyButton.className = "shrink-0 p-3 bg-gray-700 hover:bg-gray-600 transition-colors duration-200 rounded-lg shadow-md";
                 copyButton.title = "Copy mailto link";
-                copyButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                copyButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
                     <path d="M8 2a2 2 0 00-2 2v2H4a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-2h2a2 2 0 002-2V8a2 2 0 00-2-2h-2V4a2 2 0 00-2-2h-4z" />
                 </svg>`;
                 copyButton.onclick = () => {
                     navigator.clipboard.writeText(mailtoHref).then(() => {
-                        showStatus('✅ Copied mailto link', false);
+                        showToast('Copied mailto link', 'success');
                     }).catch(err => {
                         console.error('Failed to copy:', err);
-                        showStatus('Failed to copy link', true);
+                        showToast('Failed to copy link', 'error');
                     });
                 };
                 
                 const variablesToggleBtn = document.createElement('button');
-                variablesToggleBtn.className = "shrink-0 p-3 bg-gray-700 hover:bg-gray-600 transition-colors duration-200 rounded-lg text-sm shadow-sm";
+                variablesToggleBtn.className = "shrink-0 p-3 bg-gray-700 hover:bg-gray-600 transition-colors duration-200 rounded-lg shadow-md";
                 variablesToggleBtn.title = "Show variables";
-                variablesToggleBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                variablesToggleBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                 </svg>`;
                 
@@ -919,7 +1666,7 @@
             // Export functionality
             exportMailtoBtn.addEventListener('click', () => {
                 if (generatedEmails.length === 0) {
-                    showStatus('No emails to export', true);
+                    showToast('No emails to export', 'error');
                     return;
                 }
 
@@ -949,15 +1696,59 @@
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
 
-                showStatus('✅ Exported emails to file', false);
+                showToast('Exported to TXT file', 'success');
+            });
+
+            exportCsvBtn.addEventListener('click', () => {
+                if (generatedEmails.length === 0) {
+                    showToast('No emails to export', 'error');
+                    return;
+                }
+
+                const csvHeaders = ['To', 'CC', 'BCC', 'Subject', 'Body', 'Attachments', 'Mailto Link'];
+                const csvRows = generatedEmails.map(email => [
+                    email.recipient,
+                    email.cc || '',
+                    email.bcc || '',
+                    email.subject,
+                    email.body,
+                    email.attachments || '',
+                    email.mailtoHref
+                ]);
+
+                const csv = Papa.unparse({
+                    fields: csvHeaders,
+                    data: csvRows
+                });
+
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `email-drafts-${new Date().toISOString().slice(0,10)}.csv`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                showToast('Exported to CSV file', 'success');
             });
 
             clearAllBtn.addEventListener('click', () => {
                 if (confirm('Clear all generated emails? This cannot be undone.')) {
+                    // Save to undo stack
+                    undoStack.push({
+                        emails: [...generatedEmails],
+                        html: linksContainerEl.innerHTML
+                    });
+                    if (undoStack.length > 10) undoStack.shift(); // Keep only last 10 states
+                    undoBtn.disabled = false;
+
                     linksContainerEl.innerHTML = '';
                     generatedEmails = [];
                     exportSection.classList.add('hidden');
-                    showStatus('Cleared all emails', false);
+                    document.getElementById('stat-emails-gen').textContent = '0';
+                    showToast('Cleared all emails (Ctrl+Z to undo)', 'info');
                 }
             });
         });
