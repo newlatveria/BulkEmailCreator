@@ -785,6 +785,19 @@
                                             <label for="addMergeSummary" class="text-xs text-gray-300">Add summary at top (e.g., "3 items below")</label>
                                         </div>
 
+                                        <!-- Merge Display Mode -->
+                                        <div>
+                                            <label class="block text-xs font-medium text-gray-300 mb-2">Merge display mode:</label>
+                                            <select id="mergeDisplayMode" class="w-full p-2 rounded bg-gray-600 text-gray-100 text-xs focus:outline-none focus:ring-2 focus:ring-teal-500">
+                                                <option value="separate">Show body for each entry (separate)</option>
+                                                <option value="once">Show body once + list varying data</option>
+                                            </select>
+                                            <p class="text-xs text-gray-500 mt-1">
+                                                <span class="font-semibold">Separate:</span> Full body repeated per row<br>
+                                                <span class="font-semibold">Once:</span> Body once, then data list
+                                            </p>
+                                        </div>
+
                                         <!-- Spacing between entries -->
                                         <div>
                                             <label class="block text-xs font-medium text-gray-300 mb-2">Spacing between entries:</label>
@@ -998,6 +1011,7 @@
             const includeEntryNumberEl = document.getElementById('includeEntryNumber');
             const addMergeSummaryEl = document.getElementById('addMergeSummary');
             const mergeSpacingEl = document.getElementById('mergeSpacing');
+            const mergeDisplayModeEl = document.getElementById('mergeDisplayMode');
             const generateBtn = document.getElementById('generateBtn');
             const generateSpinner = document.getElementById('generateSpinner');
             const previewBtn = document.getElementById('previewBtn');
@@ -1274,6 +1288,7 @@
                     includeEntryNumber: includeEntryNumberEl.checked,
                     addMergeSummary: addMergeSummaryEl.checked,
                     mergeSpacing: mergeSpacingEl.value,
+                    mergeDisplayMode: mergeDisplayModeEl.value,
                     timestamp: new Date().toISOString()
                 };
 
@@ -1353,6 +1368,7 @@
                     if (template.includeEntryNumber !== undefined) includeEntryNumberEl.checked = template.includeEntryNumber;
                     if (template.addMergeSummary !== undefined) addMergeSummaryEl.checked = template.addMergeSummary;
                     if (template.mergeSpacing) mergeSpacingEl.value = template.mergeSpacing;
+                    if (template.mergeDisplayMode) mergeDisplayModeEl.value = template.mergeDisplayMode;
                 } else if (mergeMode === 'multiRecipient') {
                     mergeMultiRecipientEl.checked = true;
                     multiRecipientOptions.classList.remove('hidden');
@@ -1913,53 +1929,106 @@
                         const includeEntryNumber = includeEntryNumberEl.checked;
                         const addSummary = addMergeSummaryEl.checked;
                         const spacing = mergeSpacingEl.value;
+                        const displayMode = mergeDisplayModeEl.value;
                         
                         // Determine line breaks based on spacing
                         const lineBreaks = spacing === 'single' ? '\n' : spacing === 'double' ? '\n\n' : '\n\n\n';
 
-                        // Add summary at top if requested
-                        if (addSummary && rowsForRecipient.length > 1) {
-                            mergedBody += `You have ${rowsForRecipient.length} items below:\n\n`;
-                        }
+                        // Process first row to get the base body template with first row's variables
+                        let baseBody = bodyTemplate;
+                        const firstRow = rowsForRecipient[0];
+                        csvDataHeaders.forEach(header => {
+                            const placeholder = `{{${header}}}`;
+                            const value = firstRow[header] || '';
+                            baseBody = baseBody.split(placeholder).join(value);
+                            firstSubject = subjectTemplate.split(placeholder).join(value);
+                            firstRowVariables[header] = value;
+                        });
 
-                        rowsForRecipient.forEach((row, idx) => {
-                            let finalSubject = subjectTemplate;
-                            let finalBody = bodyTemplate;
+                        if (displayMode === 'once') {
+                            // NEW MODE: Show body once, then list the varying data
+                            mergedBody = baseBody + '\n\n';
                             
-                            const variables = {};
-                            csvDataHeaders.forEach(header => {
-                                const placeholder = `{{${header}}}`;
-                                const value = row[header] || '';
-                                finalSubject = finalSubject.split(placeholder).join(value);
-                                finalBody = finalBody.split(placeholder).join(value);
-                                variables[header] = value;
+                            if (addSummary && rowsForRecipient.length > 1) {
+                                mergedBody += `--- ${rowsForRecipient.length} Items ---\n\n`;
+                            }
+
+                            // List each row's data
+                            rowsForRecipient.forEach((row, idx) => {
+                                let separator = '';
+                                if (separatorStyle !== 'none') {
+                                    if (separatorStyle === 'numbered') {
+                                        separator = includeEntryNumber ? `${idx + 1}. ` : '• ';
+                                    } else if (separatorStyle === 'bullets') {
+                                        separator = includeEntryNumber ? `${idx + 1}. ` : '• ';
+                                    } else if (separatorStyle === 'headers') {
+                                        separator = includeEntryNumber ? `ITEM ${idx + 1}: ` : '';
+                                    } else if (separatorStyle === 'simple') {
+                                        separator = idx > 0 ? '────\n' : '';
+                                    }
+                                }
+
+                                // Build a line with the key data from this row
+                                const rowData = [];
+                                csvDataHeaders.forEach(header => {
+                                    const value = row[header] || '';
+                                    if (value) {
+                                        rowData.push(`${header}: ${value}`);
+                                    }
+                                });
+
+                                mergedBody += separator + rowData.join(' | ') + '\n';
+                                
+                                if (ccCol && row[ccCol]) allCCs.add(row[ccCol]);
+                                if (bccCol && row[bccCol]) allBCCs.add(row[bccCol]);
+                                if (attachmentsCol && row[attachmentsCol]) allAttachments.add(row[attachmentsCol]);
                             });
 
-                            if (idx === 0) {
-                                firstSubject = finalSubject;
-                                firstRowVariables = variables;
+                        } else {
+                            // ORIGINAL MODE: Show full body for each entry
+                            if (addSummary && rowsForRecipient.length > 1) {
+                                mergedBody += `You have ${rowsForRecipient.length} items below:\n\n`;
                             }
 
-                            // Build separator based on style
-                            let separator = '';
-                            if (separatorStyle !== 'none') {
-                                if (separatorStyle === 'numbered') {
-                                    separator = includeEntryNumber ? `--- Entry ${idx + 1} ---\n` : '---\n';
-                                } else if (separatorStyle === 'bullets') {
-                                    separator = includeEntryNumber ? `• Item ${idx + 1}\n` : '•\n';
-                                } else if (separatorStyle === 'headers') {
-                                    separator = includeEntryNumber ? `== ENTRY ${idx + 1} ==\n` : '==\n';
-                                } else if (separatorStyle === 'simple') {
-                                    separator = '────────────\n';
+                            rowsForRecipient.forEach((row, idx) => {
+                                let finalSubject = subjectTemplate;
+                                let finalBody = bodyTemplate;
+                                
+                                const variables = {};
+                                csvDataHeaders.forEach(header => {
+                                    const placeholder = `{{${header}}}`;
+                                    const value = row[header] || '';
+                                    finalSubject = finalSubject.split(placeholder).join(value);
+                                    finalBody = finalBody.split(placeholder).join(value);
+                                    variables[header] = value;
+                                });
+
+                                if (idx === 0) {
+                                    firstSubject = finalSubject;
+                                    firstRowVariables = variables;
                                 }
-                            }
 
-                            mergedBody += separator + finalBody + lineBreaks;
-                            
-                            if (ccCol && row[ccCol]) allCCs.add(row[ccCol]);
-                            if (bccCol && row[bccCol]) allBCCs.add(row[bccCol]);
-                            if (attachmentsCol && row[attachmentsCol]) allAttachments.add(row[attachmentsCol]);
-                        });
+                                // Build separator based on style
+                                let separator = '';
+                                if (separatorStyle !== 'none') {
+                                    if (separatorStyle === 'numbered') {
+                                        separator = includeEntryNumber ? `--- Entry ${idx + 1} ---\n` : '---\n';
+                                    } else if (separatorStyle === 'bullets') {
+                                        separator = includeEntryNumber ? `• Item ${idx + 1}\n` : '•\n';
+                                    } else if (separatorStyle === 'headers') {
+                                        separator = includeEntryNumber ? `== ENTRY ${idx + 1} ==\n` : '==\n';
+                                    } else if (separatorStyle === 'simple') {
+                                        separator = '────────────\n';
+                                    }
+                                }
+
+                                mergedBody += separator + finalBody + lineBreaks;
+                                
+                                if (ccCol && row[ccCol]) allCCs.add(row[ccCol]);
+                                if (bccCol && row[bccCol]) allBCCs.add(row[bccCol]);
+                                if (attachmentsCol && row[attachmentsCol]) allAttachments.add(row[attachmentsCol]);
+                            });
+                        }
 
                         const ccEmailsFinal = Array.from(allCCs).join(', ');
                         const bccEmailsFinal = Array.from(allBCCs).join(', ');
