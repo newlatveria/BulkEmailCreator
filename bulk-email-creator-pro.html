@@ -95,17 +95,57 @@
             background: #dc2626;
         }
         
-        /* Desktop grid layout */
+        /* Desktop grid layout - Enhanced for accessibility */
         .desktop-grid {
             display: grid;
-            grid-template-columns: 1fr 350px;
-            gap: 1.5rem;
+            grid-template-columns: 1fr 400px;
+            gap: 2rem;
+            align-items: start;
+        }
+        
+        @media (max-width: 1400px) {
+            .desktop-grid {
+                grid-template-columns: 1fr 350px;
+            }
         }
         
         @media (max-width: 1280px) {
             .desktop-grid {
                 grid-template-columns: 1fr;
             }
+        }
+
+        /* Sticky sidebar for better UX */
+        .sticky-sidebar {
+            position: sticky;
+            top: 1.5rem;
+            max-height: calc(100vh - 3rem);
+            overflow-y: auto;
+        }
+
+        /* Improved focus states for accessibility */
+        button:focus-visible, 
+        input:focus-visible, 
+        select:focus-visible, 
+        textarea:focus-visible {
+            outline: 2px solid #14b8a6;
+            outline-offset: 2px;
+        }
+
+        /* Skip to content link for screen readers */
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background: #14b8a6;
+            color: white;
+            padding: 8px;
+            text-decoration: none;
+            z-index: 100;
+        }
+
+        .skip-link:focus {
+            top: 0;
         }
         
         /* Variable usage panel */
@@ -222,6 +262,9 @@
 </head>
 <body class="bg-slate-900 text-gray-100 antialiased leading-relaxed p-6">
 
+    <!-- Skip to main content for accessibility -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
     <!-- Progress Bar -->
     <div id="progressBar" class="progress-bar"></div>
 
@@ -277,8 +320,13 @@
                     <p>Save your email templates for reuse. Templates include subject, body, and settings.</p>
                 </div>
                 <div>
-                    <h3 class="font-bold text-teal-300 mb-2">🔄 Merge Feature</h3>
-                    <p>Enable "Merge emails" to combine multiple rows with the same recipient into one email with numbered sections.</p>
+                    <h3 class="font-bold text-teal-300 mb-2">🔄 Merge Features</h3>
+                    <p>Three merge modes available:</p>
+                    <ul class="list-disc list-inside mt-2 text-xs space-y-1">
+                        <li><strong>No merging:</strong> One email per row (default)</li>
+                        <li><strong>Merge same recipient:</strong> Combine rows with same email into numbered sections</li>
+                        <li><strong>Multi-recipient:</strong> All recipients in one email with shared body text - choose TO (visible to all) or BCC (hidden from each other)</li>
+                    </ul>
                 </div>
                 <div>
                     <h3 class="font-bold text-teal-300 mb-2">📧 Sending Emails</h3>
@@ -339,7 +387,7 @@
         </div>
 
         <!-- Main Desktop Grid Layout -->
-        <div class="desktop-grid">
+        <div class="desktop-grid" id="main-content">
             <!-- Left Column - Main Content -->
             <div class="space-y-6">
                 <!-- File Upload Card -->
@@ -484,13 +532,49 @@
                             </select>
                         </div>
 
-                        <!-- Merge Option -->
-                        <div class="flex items-center space-x-3 p-4 bg-gray-700 rounded-lg">
-                            <input type="checkbox" id="mergeEmails" class="h-4 w-4 rounded border-gray-600 bg-gray-800 text-teal-500 focus:ring-2 focus:ring-teal-500">
-                            <label for="mergeEmails" class="text-sm text-gray-300">
-                                <span class="font-semibold">Merge multiple rows per recipient</span>
-                                <span class="block text-xs text-gray-400 mt-1">Combine emails to the same recipient into one email with numbered sections</span>
-                            </label>
+                        <!-- Merge Options -->
+                        <div class="border border-gray-700 rounded-lg p-4 bg-gray-750">
+                            <h3 class="text-sm font-semibold text-teal-300 mb-3">Merge Options</h3>
+                            
+                            <div class="space-y-3">
+                                <div class="flex items-start space-x-3">
+                                    <input type="radio" id="mergeNone" name="mergeMode" value="none" class="mt-1 h-4 w-4 border-gray-600 bg-gray-800 text-teal-500 focus:ring-2 focus:ring-teal-500" checked>
+                                    <label for="mergeNone" class="text-sm text-gray-300">
+                                        <span class="font-semibold">No merging</span>
+                                        <span class="block text-xs text-gray-400 mt-1">One email per row</span>
+                                    </label>
+                                </div>
+
+                                <div class="flex items-start space-x-3">
+                                    <input type="radio" id="mergeSameRecipient" name="mergeMode" value="sameRecipient" class="mt-1 h-4 w-4 border-gray-600 bg-gray-800 text-teal-500 focus:ring-2 focus:ring-teal-500">
+                                    <label for="mergeSameRecipient" class="text-sm text-gray-300">
+                                        <span class="font-semibold">Merge rows with same recipient</span>
+                                        <span class="block text-xs text-gray-400 mt-1">Combine multiple rows for same recipient into numbered sections</span>
+                                    </label>
+                                </div>
+
+                                <div class="flex items-start space-x-3">
+                                    <input type="radio" id="mergeMultiRecipient" name="mergeMode" value="multiRecipient" class="mt-1 h-4 w-4 border-gray-600 bg-gray-800 text-teal-500 focus:ring-2 focus:ring-teal-500">
+                                    <label for="mergeMultiRecipient" class="text-sm text-gray-300">
+                                        <span class="font-semibold">Combine multiple recipients (shared body)</span>
+                                        <span class="block text-xs text-gray-400 mt-1">One email with all recipients in TO/CC field, single body text</span>
+                                    </label>
+                                </div>
+
+                                <div id="multiRecipientOptions" class="hidden ml-7 mt-2 p-3 bg-gray-700 rounded border-l-2 border-teal-500">
+                                    <label class="block text-xs font-medium text-gray-400 mb-2">Where to place additional recipients:</label>
+                                    <div class="space-y-2">
+                                        <div class="flex items-center space-x-2">
+                                            <input type="radio" id="multiRecipientTo" name="multiRecipientField" value="to" class="h-3 w-3 border-gray-600 bg-gray-800 text-teal-500 focus:ring-1 focus:ring-teal-500" checked>
+                                            <label for="multiRecipientTo" class="text-xs text-gray-300">TO field (all visible to each other)</label>
+                                        </div>
+                                        <div class="flex items-center space-x-2">
+                                            <input type="radio" id="multiRecipientBcc" name="multiRecipientField" value="bcc" class="h-3 w-3 border-gray-600 bg-gray-800 text-teal-500 focus:ring-1 focus:ring-teal-500">
+                                            <label for="multiRecipientBcc" class="text-xs text-gray-300">BCC field (hidden from each other)</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -542,8 +626,8 @@
                 </div>
             </div>
 
-            <!-- Right Column - Variable Usage & Info -->
-            <div class="space-y-6">
+            <!-- Right Column - Variable Usage & Info (Sticky) -->
+            <div class="sticky-sidebar space-y-6" role="complementary" aria-label="Template analysis and statistics">
                 <!-- Variables Used Panel -->
                 <div id="variables-used-panel" class="bg-gray-800 rounded-xl shadow-xl p-6">
                     <h2 class="text-xl font-bold text-teal-300 mb-4">📋 Template Analysis</h2>
@@ -659,7 +743,12 @@
             const ccColEl = document.getElementById('ccColumn');
             const bccColEl = document.getElementById('bccColumn');
             const attachmentsColEl = document.getElementById('attachmentsColumn');
-            const mergeEmailsEl = document.getElementById('mergeEmails');
+            const mergeNoneEl = document.getElementById('mergeNone');
+            const mergeSameRecipientEl = document.getElementById('mergeSameRecipient');
+            const mergeMultiRecipientEl = document.getElementById('mergeMultiRecipient');
+            const multiRecipientOptions = document.getElementById('multiRecipientOptions');
+            const multiRecipientToEl = document.getElementById('multiRecipientTo');
+            const multiRecipientBccEl = document.getElementById('multiRecipientBcc');
             const generateBtn = document.getElementById('generateBtn');
             const generateSpinner = document.getElementById('generateSpinner');
             const previewBtn = document.getElementById('previewBtn');
@@ -845,6 +934,18 @@
             handleEmailInput(ccInput, ccChipsContainer, ccEmails);
             handleEmailInput(bccInput, bccChipsContainer, bccEmails);
 
+            // Merge mode change handler
+            const mergeModeRadios = document.querySelectorAll('input[name="mergeMode"]');
+            mergeModeRadios.forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    if (e.target.value === 'multiRecipient') {
+                        multiRecipientOptions.classList.remove('hidden');
+                    } else {
+                        multiRecipientOptions.classList.add('hidden');
+                    }
+                });
+            });
+
             // Variable detection and display
             const extractVariables = (text) => {
                 const regex = /\{\{([^}]+)\}\}/g;
@@ -897,6 +998,11 @@
                 const templateName = prompt('Enter a name for this template:');
                 if (!templateName) return;
 
+                // Get merge mode
+                let mergeMode = 'none';
+                if (mergeSameRecipientEl.checked) mergeMode = 'sameRecipient';
+                else if (mergeMultiRecipientEl.checked) mergeMode = 'multiRecipient';
+
                 const template = {
                     name: templateName,
                     subject: subjectTemplateEl.value,
@@ -907,7 +1013,8 @@
                     bccColumn: bccColEl.value,
                     ccEmails: [...ccEmails],
                     bccEmails: [...bccEmails],
-                    mergeEmails: mergeEmailsEl.checked,
+                    mergeMode: mergeMode,
+                    multiRecipientField: multiRecipientToEl.checked ? 'to' : 'bcc',
                     timestamp: new Date().toISOString()
                 };
 
@@ -968,7 +1075,22 @@
             const applyTemplate = (template) => {
                 subjectTemplateEl.value = template.subject;
                 bodyTemplateEl.value = template.body;
-                mergeEmailsEl.checked = template.mergeEmails;
+                
+                // Set merge mode
+                const mergeMode = template.mergeMode || 'none';
+                if (mergeMode === 'none') mergeNoneEl.checked = true;
+                else if (mergeMode === 'sameRecipient') mergeSameRecipientEl.checked = true;
+                else if (mergeMode === 'multiRecipient') {
+                    mergeMultiRecipientEl.checked = true;
+                    multiRecipientOptions.classList.remove('hidden');
+                    
+                    // Set multi-recipient field
+                    if (template.multiRecipientField === 'bcc') {
+                        multiRecipientBccEl.checked = true;
+                    } else {
+                        multiRecipientToEl.checked = true;
+                    }
+                }
 
                 // Clear existing manual emails
                 ccEmails.length = 0;
@@ -1434,7 +1556,13 @@
                 const ccCol = ccColEl.value;
                 const bccCol = bccColEl.value;
                 const attachmentsCol = attachmentsColEl.value;
-                const shouldMerge = mergeEmailsEl.checked;
+                
+                // Get merge mode
+                let mergeMode = 'none';
+                if (mergeSameRecipientEl.checked) mergeMode = 'sameRecipient';
+                else if (mergeMultiRecipientEl.checked) mergeMode = 'multiRecipient';
+                
+                const multiRecipientField = multiRecipientToEl.checked ? 'to' : 'bcc';
 
                 if (!csvData) {
                     showToast('Please upload a file first', 'error');
@@ -1461,7 +1589,7 @@
                     linksContainerEl.innerHTML = '';
                     generatedEmails = [];
 
-                    processAndGenerateEmails(filteredData, recipientCol, subjectTemplate, bodyTemplate, ccCol, bccCol, attachmentsCol, shouldMerge);
+                    processAndGenerateEmails(filteredData, recipientCol, subjectTemplate, bodyTemplate, ccCol, bccCol, attachmentsCol, mergeMode, multiRecipientField);
                     
                     exportSection.classList.remove('hidden');
                     showProgress(false);
@@ -1470,8 +1598,9 @@
                 }, 100);
             });
 
-            const processAndGenerateEmails = (data, recipientCol, subjectTemplate, bodyTemplate, ccCol, bccCol, attachmentsCol, shouldMerge) => {
-                if (shouldMerge) {
+            const processAndGenerateEmails = (data, recipientCol, subjectTemplate, bodyTemplate, ccCol, bccCol, attachmentsCol, mergeMode, multiRecipientField) => {
+                if (mergeMode === 'sameRecipient') {
+                    // Original merge mode: combine rows with same recipient
                     const recipientGroups = {};
                     data.forEach(row => {
                         const recipient = row[recipientCol];
@@ -1523,14 +1652,77 @@
                         const bccEmailsFinal = Array.from(allBCCs).join(', ');
                         const attachments = Array.from(allAttachments).join(', ');
                         
-                        createEmailOutputBlock(recipient, firstSubject, mergedBody, ccEmailsFinal, bccEmailsFinal, attachments, firstRowVariables, true, rowsForRecipient.length);
+                        createEmailOutputBlock(recipient, firstSubject, mergedBody, ccEmailsFinal, bccEmailsFinal, attachments, firstRowVariables, 'sameRecipient', rowsForRecipient.length);
                         generatedCount++;
                     }
 
                     showStatus(`✅ Generated ${generatedCount} merged email drafts from ${data.length} rows`, false);
                     showToast(`Generated ${generatedCount} merged emails`, 'success');
                     document.getElementById('stat-emails-gen').textContent = generatedCount;
+                    
+                } else if (mergeMode === 'multiRecipient') {
+                    // New mode: combine multiple recipients, single body
+                    const allRecipients = [];
+                    const allCCs = new Set(ccEmails);
+                    const allBCCs = new Set(bccEmails);
+                    const allAttachments = new Set();
+                    let finalSubject = subjectTemplate;
+                    let finalBody = bodyTemplate;
+                    let firstRowVariables = {};
+
+                    data.forEach((row, idx) => {
+                        const recipient = row[recipientCol];
+                        if (recipient && recipient.trim()) {
+                            allRecipients.push(recipient);
+                        }
+
+                        // Use first row for variable substitution
+                        if (idx === 0) {
+                            const variables = {};
+                            csvDataHeaders.forEach(header => {
+                                const placeholder = `{{${header}}}`;
+                                const value = row[header] || '';
+                                finalSubject = finalSubject.split(placeholder).join(value);
+                                finalBody = finalBody.split(placeholder).join(value);
+                                variables[header] = value;
+                            });
+                            firstRowVariables = variables;
+                        }
+
+                        // Collect CC, BCC, and attachments
+                        if (ccCol && row[ccCol]) allCCs.add(row[ccCol]);
+                        if (bccCol && row[bccCol]) allBCCs.add(row[bccCol]);
+                        if (attachmentsCol && row[attachmentsCol]) allAttachments.add(row[attachmentsCol]);
+                    });
+
+                    if (allRecipients.length > 0) {
+                        let primaryRecipient, additionalRecipients;
+                        let ccEmailsFinal = Array.from(allCCs).join(', ');
+                        let bccEmailsFinal = Array.from(allBCCs).join(', ');
+
+                        if (multiRecipientField === 'to') {
+                            // All recipients in TO field
+                            primaryRecipient = allRecipients.join(', ');
+                            additionalRecipients = '';
+                        } else {
+                            // First in TO, rest in BCC
+                            primaryRecipient = allRecipients[0];
+                            const additionalBcc = allRecipients.slice(1).join(', ');
+                            bccEmailsFinal = bccEmailsFinal ? `${bccEmailsFinal}, ${additionalBcc}` : additionalBcc;
+                            additionalRecipients = allRecipients.slice(1);
+                        }
+
+                        const attachments = Array.from(allAttachments).join(', ');
+                        
+                        createEmailOutputBlock(primaryRecipient, finalSubject, finalBody, ccEmailsFinal, bccEmailsFinal, attachments, firstRowVariables, 'multiRecipient', data.length, additionalRecipients);
+                        
+                        showStatus(`✅ Generated 1 email with ${allRecipients.length} recipients from ${data.length} rows`, false);
+                        showToast(`Generated 1 email with ${allRecipients.length} recipients`, 'success');
+                        document.getElementById('stat-emails-gen').textContent = '1';
+                    }
+                    
                 } else {
+                    // No merge: one email per row
                     let generatedCount = 0;
                     data.forEach(row => {
                         const recipient = row[recipientCol];
@@ -1554,7 +1746,7 @@
                                 variables[header] = value;
                             });
                             
-                            createEmailOutputBlock(recipient, finalSubject, finalBody, allCC, allBCC, attachments, variables, false, 1);
+                            createEmailOutputBlock(recipient, finalSubject, finalBody, allCC, allBCC, attachments, variables, 'none', 1);
                             generatedCount++;
                         }
                     });
@@ -1570,7 +1762,7 @@
                 }
             };
             
-            const createEmailOutputBlock = (recipient, subject, body, cc, bcc, attachments, variables, isMerged = false, rowCount = 1) => {
+            const createEmailOutputBlock = (recipient, subject, body, cc, bcc, attachments, variables, mergeMode = 'none', rowCount = 1, additionalRecipients = null) => {
                 const encodedSubject = encodeURIComponent(subject || '');
                 const encodedBody = encodeURIComponent(body || '');
                 let mailtoHref = `mailto:${recipient}?subject=${encodedSubject}&body=${encodedBody}`;
@@ -1599,7 +1791,16 @@
                 linkEl.className = "flex-grow block bg-gray-700 hover:bg-gray-600 transition-colors duration-200 p-4 rounded-lg text-sm text-left shadow-md";
                 
                 let linkContent = `<span class="font-bold text-teal-300">To:</span> ${recipient}`;
-                if (isMerged) linkContent += `<br><span class="font-bold text-amber-300">Merged:</span> ${rowCount} entries`;
+                
+                if (mergeMode === 'sameRecipient') {
+                    linkContent += `<br><span class="font-bold text-amber-300">📋 Merged:</span> ${rowCount} entries combined`;
+                } else if (mergeMode === 'multiRecipient') {
+                    linkContent += `<br><span class="font-bold text-purple-300">👥 Multi-recipient:</span> ${rowCount} recipients total`;
+                    if (additionalRecipients && additionalRecipients.length > 0) {
+                        linkContent += `<br><span class="text-xs text-gray-400">+ ${additionalRecipients.length} more in BCC</span>`;
+                    }
+                }
+                
                 if (cc) linkContent += `<br><span class="font-bold text-sky-300">CC:</span> ${cc}`;
                 if (bcc) linkContent += `<br><span class="font-bold text-purple-300">BCC:</span> ${bcc}`;
                 linkContent += `<br><span class="font-bold text-sky-300">Subject:</span> ${subject || '(No subject)'}`;
@@ -1640,7 +1841,7 @@
                 
                 const variablesContainer = document.createElement('div');
                 variablesContainer.className = "hidden pl-4 pr-2 pb-2 text-xs text-gray-400 overflow-x-auto bg-gray-750 rounded p-3 mt-2";
-                let varsHtml = `<p class="font-bold text-gray-300 mb-2">${isMerged ? 'Variables (first entry):' : 'Variables:'}</p>`;
+                let varsHtml = `<p class="font-bold text-gray-300 mb-2">${mergeMode === 'sameRecipient' ? 'Variables (first entry):' : 'Variables:'}</p>`;
                 for (const key in variables) {
                     if (variables.hasOwnProperty(key)) {
                         varsHtml += `<p class="mb-1"><span class="font-semibold text-gray-300">${key}:</span> ${variables[key]}</p>`;
