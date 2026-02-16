@@ -756,6 +756,47 @@
                                     </label>
                                 </div>
 
+                                <!-- Same Recipient Merge Options -->
+                                <div id="sameRecipientOptions" class="hidden ml-7 mt-2 p-3 bg-gray-700 rounded border-l-2 border-amber-500">
+                                    <label class="block text-xs font-medium text-gray-400 mb-3">Merge format settings:</label>
+                                    
+                                    <div class="space-y-3">
+                                        <!-- Separator Style -->
+                                        <div>
+                                            <label class="block text-xs font-medium text-gray-300 mb-2">Entry separator:</label>
+                                            <select id="mergeSeparatorStyle" class="w-full p-2 rounded bg-gray-600 text-gray-100 text-xs focus:outline-none focus:ring-2 focus:ring-teal-500">
+                                                <option value="numbered">--- Entry 1 ---</option>
+                                                <option value="bullets">• Item 1</option>
+                                                <option value="headers">== ENTRY 1 ==</option>
+                                                <option value="simple">────────────</option>
+                                                <option value="none">No separator</option>
+                                            </select>
+                                        </div>
+
+                                        <!-- Include Entry Headers -->
+                                        <div class="flex items-center space-x-2">
+                                            <input type="checkbox" id="includeEntryNumber" class="h-3 w-3 rounded border-gray-600 bg-gray-800 text-teal-500 focus:ring-1 focus:ring-teal-500" checked>
+                                            <label for="includeEntryNumber" class="text-xs text-gray-300">Include entry numbers</label>
+                                        </div>
+
+                                        <!-- Add summary at top -->
+                                        <div class="flex items-center space-x-2">
+                                            <input type="checkbox" id="addMergeSummary" class="h-3 w-3 rounded border-gray-600 bg-gray-800 text-teal-500 focus:ring-1 focus:ring-teal-500">
+                                            <label for="addMergeSummary" class="text-xs text-gray-300">Add summary at top (e.g., "3 items below")</label>
+                                        </div>
+
+                                        <!-- Spacing between entries -->
+                                        <div>
+                                            <label class="block text-xs font-medium text-gray-300 mb-2">Spacing between entries:</label>
+                                            <select id="mergeSpacing" class="w-full p-2 rounded bg-gray-600 text-gray-100 text-xs focus:outline-none focus:ring-2 focus:ring-teal-500">
+                                                <option value="single">Single line break</option>
+                                                <option value="double" selected>Double line break</option>
+                                                <option value="triple">Triple line break</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <div class="flex items-start space-x-3">
                                     <input type="radio" id="mergeMultiRecipient" name="mergeMode" value="multiRecipient" class="mt-1 h-4 w-4 border-gray-600 bg-gray-800 text-teal-500 focus:ring-2 focus:ring-teal-500">
                                     <label for="mergeMultiRecipient" class="text-sm text-gray-300">
@@ -949,9 +990,14 @@
             const mergeNoneEl = document.getElementById('mergeNone');
             const mergeSameRecipientEl = document.getElementById('mergeSameRecipient');
             const mergeMultiRecipientEl = document.getElementById('mergeMultiRecipient');
+            const sameRecipientOptions = document.getElementById('sameRecipientOptions');
             const multiRecipientOptions = document.getElementById('multiRecipientOptions');
             const multiRecipientToEl = document.getElementById('multiRecipientTo');
             const multiRecipientBccEl = document.getElementById('multiRecipientBcc');
+            const mergeSeparatorStyleEl = document.getElementById('mergeSeparatorStyle');
+            const includeEntryNumberEl = document.getElementById('includeEntryNumber');
+            const addMergeSummaryEl = document.getElementById('addMergeSummary');
+            const mergeSpacingEl = document.getElementById('mergeSpacing');
             const generateBtn = document.getElementById('generateBtn');
             const generateSpinner = document.getElementById('generateSpinner');
             const previewBtn = document.getElementById('previewBtn');
@@ -1141,10 +1187,15 @@
             const mergeModeRadios = document.querySelectorAll('input[name="mergeMode"]');
             mergeModeRadios.forEach(radio => {
                 radio.addEventListener('change', (e) => {
-                    if (e.target.value === 'multiRecipient') {
+                    // Hide all option panels
+                    sameRecipientOptions.classList.add('hidden');
+                    multiRecipientOptions.classList.add('hidden');
+                    
+                    // Show relevant options
+                    if (e.target.value === 'sameRecipient') {
+                        sameRecipientOptions.classList.remove('hidden');
+                    } else if (e.target.value === 'multiRecipient') {
                         multiRecipientOptions.classList.remove('hidden');
-                    } else {
-                        multiRecipientOptions.classList.add('hidden');
                     }
                 });
             });
@@ -1218,6 +1269,11 @@
                     bccEmails: [...bccEmails],
                     mergeMode: mergeMode,
                     multiRecipientField: multiRecipientToEl.checked ? 'to' : 'bcc',
+                    // Merge formatting options
+                    mergeSeparatorStyle: mergeSeparatorStyleEl.value,
+                    includeEntryNumber: includeEntryNumberEl.checked,
+                    addMergeSummary: addMergeSummaryEl.checked,
+                    mergeSpacing: mergeSpacingEl.value,
                     timestamp: new Date().toISOString()
                 };
 
@@ -1281,9 +1337,23 @@
                 
                 // Set merge mode
                 const mergeMode = template.mergeMode || 'none';
-                if (mergeMode === 'none') mergeNoneEl.checked = true;
-                else if (mergeMode === 'sameRecipient') mergeSameRecipientEl.checked = true;
-                else if (mergeMode === 'multiRecipient') {
+                
+                // Hide all option panels first
+                sameRecipientOptions.classList.add('hidden');
+                multiRecipientOptions.classList.add('hidden');
+                
+                if (mergeMode === 'none') {
+                    mergeNoneEl.checked = true;
+                } else if (mergeMode === 'sameRecipient') {
+                    mergeSameRecipientEl.checked = true;
+                    sameRecipientOptions.classList.remove('hidden');
+                    
+                    // Restore merge formatting settings
+                    if (template.mergeSeparatorStyle) mergeSeparatorStyleEl.value = template.mergeSeparatorStyle;
+                    if (template.includeEntryNumber !== undefined) includeEntryNumberEl.checked = template.includeEntryNumber;
+                    if (template.addMergeSummary !== undefined) addMergeSummaryEl.checked = template.addMergeSummary;
+                    if (template.mergeSpacing) mergeSpacingEl.value = template.mergeSpacing;
+                } else if (mergeMode === 'multiRecipient') {
                     mergeMultiRecipientEl.checked = true;
                     multiRecipientOptions.classList.remove('hidden');
                     
@@ -1302,8 +1372,8 @@
                 bccChipsContainer.innerHTML = '';
 
                 // Add template emails
-                template.ccEmails.forEach(email => addChip(ccChipsContainer, email, ccEmails));
-                template.bccEmails.forEach(email => addChip(bccChipsContainer, email, bccEmails));
+                if (template.ccEmails) template.ccEmails.forEach(email => addChip(ccChipsContainer, email, ccEmails));
+                if (template.bccEmails) template.bccEmails.forEach(email => addChip(bccChipsContainer, email, bccEmails));
 
                 updateVariableDisplay();
                 showToast(`Template "${template.name}" loaded`, 'success');
@@ -1838,6 +1908,20 @@
                         let firstSubject = '';
                         let firstRowVariables = {}; 
 
+                        // Get merge formatting options
+                        const separatorStyle = mergeSeparatorStyleEl.value;
+                        const includeEntryNumber = includeEntryNumberEl.checked;
+                        const addSummary = addMergeSummaryEl.checked;
+                        const spacing = mergeSpacingEl.value;
+                        
+                        // Determine line breaks based on spacing
+                        const lineBreaks = spacing === 'single' ? '\n' : spacing === 'double' ? '\n\n' : '\n\n\n';
+
+                        // Add summary at top if requested
+                        if (addSummary && rowsForRecipient.length > 1) {
+                            mergedBody += `You have ${rowsForRecipient.length} items below:\n\n`;
+                        }
+
                         rowsForRecipient.forEach((row, idx) => {
                             let finalSubject = subjectTemplate;
                             let finalBody = bodyTemplate;
@@ -1856,7 +1940,21 @@
                                 firstRowVariables = variables;
                             }
 
-                            mergedBody += `--- Entry ${idx + 1} ---\n${finalBody}\n\n`;
+                            // Build separator based on style
+                            let separator = '';
+                            if (separatorStyle !== 'none') {
+                                if (separatorStyle === 'numbered') {
+                                    separator = includeEntryNumber ? `--- Entry ${idx + 1} ---\n` : '---\n';
+                                } else if (separatorStyle === 'bullets') {
+                                    separator = includeEntryNumber ? `• Item ${idx + 1}\n` : '•\n';
+                                } else if (separatorStyle === 'headers') {
+                                    separator = includeEntryNumber ? `== ENTRY ${idx + 1} ==\n` : '==\n';
+                                } else if (separatorStyle === 'simple') {
+                                    separator = '────────────\n';
+                                }
+                            }
+
+                            mergedBody += separator + finalBody + lineBreaks;
                             
                             if (ccCol && row[ccCol]) allCCs.add(row[ccCol]);
                             if (bccCol && row[bccCol]) allBCCs.add(row[bccCol]);
